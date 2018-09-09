@@ -98,15 +98,17 @@ int main(int argc, char **argv){
 	GLuint programDefault = generateProgram("resources/shaders/default.vertex", "resources/shaders/default.fragment");
 	GLuint programInstanced = generateProgram("resources/shaders/instanced.vertex", "resources/shaders/instanced.fragment");
 	
-	///glUseProgram(programDefault);
-	glUseProgram(programInstanced);
+	glUseProgram(programDefault);
+	//glUseProgram(programInstanced);
 	
 	glm::mat4 projection = glm::perspective(45.0f, ((float) width) / height, 0.01f, 100.0f);
 	glm::mat4 view = glm::lookAt(glm::vec3(0, 0, 5), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 	glm::mat4 model = glm::mat4(1.0f);
 	glm::mat4 mvp = projection * view * model;
-	GLuint matrixID = glGetUniformLocation(programDefault, "MVP");
-	glUniformMatrix4fv(matrixID, 1, GL_FALSE, &mvp[0][0]);
+	GLuint defaultMatrixID = glGetUniformLocation(programDefault, "MVP");
+	glUniformMatrix4fv(defaultMatrixID, 1, GL_FALSE, &mvp[0][0]);
+	GLuint instancedMatrixID = glGetUniformLocation(programInstanced, "MVP");
+	glUniformMatrix4fv(instancedMatrixID, 1, GL_FALSE, &mvp[0][0]);
 	
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	
@@ -124,13 +126,16 @@ int main(int argc, char **argv){
 	glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
 	glBufferData(GL_ARRAY_BUFFER, colorBufferData.size() * sizeof(GLfloat), colorBufferData.data(), GL_STATIC_DRAW);
 	
-	std::vector<float> positionBufferData = {0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f};
+	std::vector<float> positionBufferData = {2.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f};
 	glGenBuffers(1, &positionBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
 	glBufferData(GL_ARRAY_BUFFER, positionBufferData.size() * sizeof(GLfloat), positionBufferData.data(), GL_STATIC_DRAW);
 	
 	while(!glfwWindowShouldClose(window)){
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+		glUseProgram(programInstanced);
+		glUniformMatrix4fv(instancedMatrixID, 1, GL_FALSE, &mvp[0][0]);
 		
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
@@ -144,8 +149,21 @@ int main(int argc, char **argv){
 		glVertexAttribDivisor(0, 0);
 		glVertexAttribDivisor(1, 0);
 		glVertexAttribDivisor(2, 1);
-		//glDrawArrays(GL_TRIANGLES, 0, 3);
 		glDrawArraysInstanced(GL_TRIANGLES, 0, 3, 2);
+		glDisableVertexAttribArray(2);
+		glDisableVertexAttribArray(1);
+		glDisableVertexAttribArray(0);
+		
+		glUseProgram(programDefault);
+		glUniformMatrix4fv(defaultMatrixID, 1, GL_FALSE, &mvp[0][0]);
+		
+		glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);
+		glEnableVertexAttribArray(1);
+		glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
+		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (void*) 0);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(0);
 		
