@@ -42,6 +42,33 @@ GLuint loadShader(const char* file, GLuint type){
 	return shaderID;
 }
 
+GLuint generateProgram(const char* vertexFile, const char* fragmentFile){
+	GLuint vertexShaderID = loadShader(vertexFile, GL_VERTEX_SHADER);
+	GLuint fragmentShaderID = loadShader(fragmentFile, GL_FRAGMENT_SHADER);
+	
+	GLuint programID = glCreateProgram();
+	glAttachShader(programID, vertexShaderID);
+	glAttachShader(programID, fragmentShaderID);
+	glLinkProgram(programID);
+	
+	GLint result = GL_FALSE;
+	int infoLogLength;
+	glGetProgramiv(programID, GL_LINK_STATUS, &result);
+	glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &infoLogLength);
+	if(infoLogLength > 0){
+		std::vector<char> errMsg(infoLogLength + 1);
+		glGetProgramInfoLog(programID, infoLogLength, NULL, &errMsg[0]);
+		std::cerr << &errMsg[0] << std::endl;
+	}
+	
+	glDetachShader(programID, vertexShaderID);
+	glDetachShader(programID, fragmentShaderID);
+	glDeleteShader(vertexShaderID);
+	glDeleteShader(fragmentShaderID);
+	
+	return programID;
+}
+
 int main(int argc, char **argv){
 	if(!glfwInit()){
 		std::cerr << "Could not initialise GLFW." << std::endl;
@@ -68,41 +95,22 @@ int main(int argc, char **argv){
 		return 1;
 	}
 	
-	GLuint vertexShaderID = loadShader("resources/shaders/default.vertex", GL_VERTEX_SHADER);
-	GLuint fragmentShaderID = loadShader("resources/shaders/default.fragment", GL_FRAGMENT_SHADER);
+	GLuint programDefault = generateProgram("resources/shaders/default.vertex", "resources/shaders/default.fragment");
+	GLuint programInstanced = generateProgram("resources/shaders/instanced.vertex", "resources/shaders/instanced.fragment");
 	
-	GLuint programID = glCreateProgram();
-	glAttachShader(programID, vertexShaderID);
-	glAttachShader(programID, fragmentShaderID);
-	glLinkProgram(programID);
-	
-	GLint result = GL_FALSE;
-	int infoLogLength;
-	glGetProgramiv(programID, GL_LINK_STATUS, &result);
-	glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &infoLogLength);
-	if(infoLogLength > 0){
-		std::vector<char> errMsg(infoLogLength + 1);
-		glGetProgramInfoLog(programID, infoLogLength, NULL, &errMsg[0]);
-		std::cerr << &errMsg[0] << std::endl;
-	}
-	
-	glDetachShader(programID, vertexShaderID);
-	glDetachShader(programID, fragmentShaderID);
-	glDeleteShader(vertexShaderID);
-	glDeleteShader(fragmentShaderID);
-	
-	glUseProgram(programID);
+	///glUseProgram(programDefault);
+	glUseProgram(programInstanced);
 	
 	glm::mat4 projection = glm::perspective(45.0f, ((float) width) / height, 0.01f, 100.0f);
 	glm::mat4 view = glm::lookAt(glm::vec3(0, 0, 5), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 	glm::mat4 model = glm::mat4(1.0f);
 	glm::mat4 mvp = projection * view * model;
-	GLuint matrixID = glGetUniformLocation(programID, "MVP");
+	GLuint matrixID = glGetUniformLocation(programDefault, "MVP");
 	glUniformMatrix4fv(matrixID, 1, GL_FALSE, &mvp[0][0]);
 	
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	
-	GLuint vertexArray, vertexBuffer, colorBuffer;
+	GLuint vertexArray, vertexBuffer, colorBuffer, positionBuffer;
 	glGenVertexArrays(1, &vertexArray);
 	glBindVertexArray(vertexArray);
 	
@@ -116,6 +124,11 @@ int main(int argc, char **argv){
 	glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
 	glBufferData(GL_ARRAY_BUFFER, colorBufferData.size() * sizeof(GLfloat), colorBufferData.data(), GL_STATIC_DRAW);
 	
+	std::vector<float> positionBufferData = {0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f};
+	glGenBuffers(1, &positionBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
+	glBufferData(GL_ARRAY_BUFFER, positionBufferData.size() * sizeof(GLfloat), positionBufferData.data(), GL_STATIC_DRAW);
+	
 	while(!glfwWindowShouldClose(window)){
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
@@ -125,7 +138,14 @@ int main(int argc, char **argv){
 		glEnableVertexAttribArray(1);
 		glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
 		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (void*) 0);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glEnableVertexAttribArray(2);
+		glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);
+		glVertexAttribDivisor(0, 0);
+		glVertexAttribDivisor(1, 0);
+		glVertexAttribDivisor(2, 1);
+		//glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawArraysInstanced(GL_TRIANGLES, 0, 3, 2);
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(0);
 		
