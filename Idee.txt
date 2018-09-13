@@ -1,1 +1,8 @@
-- Zon supernova, zwart gat vernietigt alles?
+- Universum simulatie
+- Basale planetenstelsels (massa, ster(ren), plane(e)t(en))
+- Basale sterren (massa, kleur, leeftijd)
+- Basale planeten (temperatuur, landschap)
+- Basaal leven op planeten (niks->leven->vis->pythons->mensen + ???)
+- Mensen als automata om te verspreiden, te ontwikkelen en te vechten tegen ander soort mensen
+- (Super)novas aan einde sterrenleven
+- Killall: alle sterren nova
