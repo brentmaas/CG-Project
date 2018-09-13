@@ -6,6 +6,8 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "Simulation.hpp"
+#include <time.h>
 
 const int width = 1200, height = 800;
 
@@ -97,17 +99,23 @@ int main(int argc, char **argv){
 	
 	GLuint programDefault = generateProgram("resources/shaders/default.vertex", "resources/shaders/default.fragment");
 	GLuint programInstanced = generateProgram("resources/shaders/instanced.vertex", "resources/shaders/instanced.fragment");
+	GLuint programParticles = generateProgram("resources/shaders/particles.vertex", "resources/shaders/particles.fragment");
 	
-	glUseProgram(programDefault);
+	glUseProgram(programParticles);
 	
-	glm::mat4 projection = glm::perspective(45.0f, ((float) width) / height, 0.01f, 100.0f);
-	glm::mat4 view = glm::lookAt(glm::vec3(0, 0, 5), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+	glm::mat4 projection = glm::perspective(45.0f, ((float) width) / height, 0.0001f, 10000.0f);
+	glm::mat4 view = glm::lookAt(glm::vec3(0, 0, 50), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 	glm::mat4 model = glm::mat4(1.0f);
 	glm::mat4 mvp = projection * view * model;
 	GLuint defaultMatrixID = glGetUniformLocation(programDefault, "MVP");
 	glUniformMatrix4fv(defaultMatrixID, 1, GL_FALSE, &mvp[0][0]);
 	GLuint instancedMatrixID = glGetUniformLocation(programInstanced, "MVP");
 	glUniformMatrix4fv(instancedMatrixID, 1, GL_FALSE, &mvp[0][0]);
+	GLuint particlesMatrixID = glGetUniformLocation(programParticles, "MVP");
+	glUniformMatrix4fv(particlesMatrixID, 1, GL_FALSE, &mvp[0][0]);
+	
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_PROGRAM_POINT_SIZE_EXT);
 	
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	
@@ -130,11 +138,24 @@ int main(int argc, char **argv){
 	glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
 	glBufferData(GL_ARRAY_BUFFER, positionBufferData.size() * sizeof(GLfloat), positionBufferData.data(), GL_STATIC_DRAW);
 	
+	float ang = 0, ang2 = 0;
+	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+	
+	Simulation sim(500, 5, time(NULL));
+	
 	while(!glfwWindowShouldClose(window)){
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		glUseProgram(programInstanced);
-		glUniformMatrix4fv(instancedMatrixID, 1, GL_FALSE, &mvp[0][0]);
+		if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) ang += 0.005f;
+		if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) ang -= 0.005f;
+		if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) ang2 -= 0.005f;
+		if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) ang2 += 0.005f;
+		glm::mat4 mat = mvp * glm::rotate(glm::mat4(1.0f), ang2, glm::vec3(1, 0, 0)) * glm::rotate(glm::mat4(1.0f), ang, glm::vec3(0, 1, 0));
+		
+		glUniformMatrix4fv(particlesMatrixID, 1, GL_FALSE, &mat[0][0]);
+		
+		/*glUseProgram(programInstanced);
+		glUniformMatrix4fv(instancedMatrixID, 1, GL_FALSE, &mat[0][0]);
 		
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
@@ -154,7 +175,7 @@ int main(int argc, char **argv){
 		glDisableVertexAttribArray(0);
 		
 		glUseProgram(programDefault);
-		glUniformMatrix4fv(defaultMatrixID, 1, GL_FALSE, &mvp[0][0]);
+		glUniformMatrix4fv(defaultMatrixID, 1, GL_FALSE, &mat[0][0]);
 		
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
@@ -164,7 +185,10 @@ int main(int argc, char **argv){
 		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (void*) 0);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glDisableVertexAttribArray(1);
-		glDisableVertexAttribArray(0);
+		glDisableVertexAttribArray(0);*/
+		
+		sim.update(0.0005f);
+		sim.draw();
 		
 		glfwSwapBuffers(window);
 		glfwPollEvents();
