@@ -61,9 +61,9 @@ void Simulation::update(float dt){
 			float d = sqrt(dx * dx + dy * dy + dz * dz);
 			
 			if(d <= 0.0001f * (mass[i] + mass[j])){
-				vParticles[3 * i] += mass[j] * vParticles[3 * j] / mass[i];
-				vParticles[3 * i + 1] += mass[j] * vParticles[3 * j + 1] / mass[i];
-				vParticles[3 * i + 2] += mass[j] * vParticles[3 * j + 2] / mass[i];
+				vParticles[3 * i] = (mass[i] * vParticles[3 * i] + mass[j] * vParticles[3 * j]) / (mass[i] + mass[j]);
+				vParticles[3 * i + 1] = (mass[i] * vParticles[3 * i + 1] + mass[j] * vParticles[3 * j + 1]) / (mass[i] + mass[j]);
+				vParticles[3 * i + 2] = (mass[i] * vParticles[3 * i + 2] + mass[j] * vParticles[3 * j + 2]) / (mass[i] + mass[j]);
 				mass[i] += mass[j];
 				mass[j] = 0;
 			}else{
