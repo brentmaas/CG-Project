@@ -54,27 +54,31 @@ Simulation::Simulation(int N, float g, int seed){
 
 void Simulation::update(float dt){
 	for(int i = 0;i < N;i++){
+		float ax = 0, ay = 0, az = 0;
 		for(int j = 0;j < N;j++) if(i != j && mass[i] != 0){
 			float dx = xParticles[3 * i] - xParticles[3 * j];
 			float dy = xParticles[3 * i + 1] - xParticles[3 * j + 1];
 			float dz = xParticles[3 * i + 2] - xParticles[3 * j + 2];
 			float d = sqrt(dx * dx + dy * dy + dz * dz);
 			
-			if(d <= 0.0001f * (mass[i] + mass[j])){
+			if(d <= 0.0005f * (mass[i] + mass[j])){
 				vParticles[3 * i] = (mass[i] * vParticles[3 * i] + mass[j] * vParticles[3 * j]) / (mass[i] + mass[j]);
 				vParticles[3 * i + 1] = (mass[i] * vParticles[3 * i + 1] + mass[j] * vParticles[3 * j + 1]) / (mass[i] + mass[j]);
 				vParticles[3 * i + 2] = (mass[i] * vParticles[3 * i + 2] + mass[j] * vParticles[3 * j + 2]) / (mass[i] + mass[j]);
 				mass[i] += mass[j];
 				mass[j] = 0;
 			}else{
-				vParticles[3 * i] -= g * mass[j] * dx / (d * d * d) * dt;
-				vParticles[3 * i + 1] -= g * mass[j] * dy / (d * d * d) * dt;
-				vParticles[3 * i + 2] -= g * mass[j] * dz / (d * d * d) * dt;
+				ax -= g * mass[j] * dx / (d * d * d) * dt;
+				ay -= g * mass[j] * dy / (d * d * d) * dt;
+				az -= g * mass[j] * dz / (d * d * d) * dt;
 			}
 		}
-		xParticles[3 * i] += vParticles[3 * i] * dt;
-		xParticles[3 * i + 1] += vParticles[3 * i + 1] * dt;
-		xParticles[3 * i + 2] += vParticles[3 * i + 2] * dt;
+		xParticles[3 * i] += vParticles[3 * i] * dt + 0.5f * ax * dt * dt;
+		xParticles[3 * i + 1] += vParticles[3 * i + 1] * dt + 0.5f * ay * dt * dt;
+		xParticles[3 * i + 2] += vParticles[3 * i + 2] * dt + 0.5f * az * dt * dt;
+		vParticles[3 * i] += ax * dt;
+		vParticles[3 * i + 1] += ay * dt;
+		vParticles[3 * i + 2] += az * dt;
 	}
 	
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);

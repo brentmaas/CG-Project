@@ -141,7 +141,7 @@ int main(int argc, char **argv){
 	float ang = 0, ang2 = 0.0f;
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 	
-	Simulation sim(100, 0.05f, time(NULL));
+	Simulation sim(100, 200.0f, time(NULL));
 	
 	while(!glfwWindowShouldClose(window)){
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -187,7 +187,7 @@ int main(int argc, char **argv){
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(0);*/
 		
-		sim.update(0.005f);
+		sim.update(0.0005f);
 		sim.draw();
 		
 		glfwSwapBuffers(window);
