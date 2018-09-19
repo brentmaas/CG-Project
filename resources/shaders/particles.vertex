@@ -7,9 +7,11 @@ layout(location = 2) in float mass;
 uniform mat4 MVP;
 
 out vec4 vertexColor;
+out float vMass;
 
 void main(){
 	gl_Position = MVP * vec4(vertexPosition, 1);
 	vertexColor = color;
 	gl_PointSize = mass;
+	vMass = mass / 5;
 }

@@ -9,6 +9,8 @@
 #include "Simulation.hpp"
 #include <time.h>
 
+const float PI  = 3.141592f;
+
 const int width = 1200, height = 800;
 
 GLuint loadShader(const char* file, GLuint type){
@@ -141,7 +143,7 @@ int main(int argc, char **argv){
 	float ang = 0, ang2 = 0.0f;
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 	
-	Simulation sim(100, 200.0f, time(NULL));
+	Simulation sim(2000, 200.0f, time(NULL));
 	
 	while(!glfwWindowShouldClose(window)){
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -150,6 +152,8 @@ int main(int argc, char **argv){
 		if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) ang -= 0.005f;
 		if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) ang2 -= 0.005f;
 		if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) ang2 += 0.005f;
+		if(ang2 > PI / 2) ang2 = PI / 2;
+		if(ang2 < -PI / 2) ang2 = -PI / 2;
 		glm::mat4 mat = mvp * glm::rotate(glm::mat4(1.0f), ang2, glm::vec3(1, 0, 0)) * glm::rotate(glm::mat4(1.0f), ang, glm::vec3(0, 1, 0));
 		
 		glUniformMatrix4fv(particlesMatrixID, 1, GL_FALSE, &mat[0][0]);

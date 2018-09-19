@@ -6,6 +6,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "DistributionDisk.hpp"
 
 class Simulation {
 public:
@@ -17,8 +18,9 @@ public:
 private:
 	int N;
 	float g;
-	std::vector<float> xParticles, vParticles, mass;
+	std::vector<float> xParticles, vParticles, colorBufferData, mass;
 	GLuint vertexBuffer, colorBuffer, massBuffer;
+	DistributionDisk dist;
 };
 
 #endif
