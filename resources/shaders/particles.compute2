@@ -1,0 +1,25 @@
+#version 430 core
+
+//Velocity and position calculations
+
+uniform int N;
+uniform float dt;
+
+layout(binding = 0) buffer posBuffer{
+	float positions[];
+};
+layout(binding = 1) buffer velBuffer{
+	float velocities[];
+};
+layout(binding = 2) buffer dForceBuffer{
+	float dForces[];
+};
+
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+void main(){
+	const uint gid = gl_GlobalInvocationID.x;
+	
+	if(gid < N){
+		
+	}
+}

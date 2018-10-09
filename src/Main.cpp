@@ -6,7 +6,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "Simulation.hpp"
+#include "Simulation2.hpp"
 #include <time.h>
 
 const float PI  = 3.141592f;
@@ -80,7 +80,7 @@ int main(int argc, char **argv){
 	}
 	
 	glfwWindowHint(GLFW_SAMPLES, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -99,8 +99,8 @@ int main(int argc, char **argv){
 		return 1;
 	}
 	
-	GLuint programDefault = generateProgram("resources/shaders/default.vertex", "resources/shaders/default.fragment");
-	GLuint programInstanced = generateProgram("resources/shaders/instanced.vertex", "resources/shaders/instanced.fragment");
+	//GLuint programDefault = generateProgram("resources/shaders/default.vertex", "resources/shaders/default.fragment");
+	//GLuint programInstanced = generateProgram("resources/shaders/instanced.vertex", "resources/shaders/instanced.fragment");
 	GLuint programParticles = generateProgram("resources/shaders/particles.vertex", "resources/shaders/particles.fragment");
 	
 	glUseProgram(programParticles);
@@ -109,10 +109,10 @@ int main(int argc, char **argv){
 	glm::mat4 view = glm::lookAt(glm::vec3(0, 0, 50), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 	glm::mat4 model = glm::mat4(1.0f);
 	glm::mat4 mvp = projection * view * model;
-	GLuint defaultMatrixID = glGetUniformLocation(programDefault, "MVP");
-	glUniformMatrix4fv(defaultMatrixID, 1, GL_FALSE, &mvp[0][0]);
-	GLuint instancedMatrixID = glGetUniformLocation(programInstanced, "MVP");
-	glUniformMatrix4fv(instancedMatrixID, 1, GL_FALSE, &mvp[0][0]);
+	//GLuint defaultMatrixID = glGetUniformLocation(programDefault, "MVP");
+	//glUniformMatrix4fv(defaultMatrixID, 1, GL_FALSE, &mvp[0][0]);
+	//GLuint instancedMatrixID = glGetUniformLocation(programInstanced, "MVP");
+	//glUniformMatrix4fv(instancedMatrixID, 1, GL_FALSE, &mvp[0][0]);
 	GLuint particlesMatrixID = glGetUniformLocation(programParticles, "MVP");
 	glUniformMatrix4fv(particlesMatrixID, 1, GL_FALSE, &mvp[0][0]);
 	
@@ -121,11 +121,11 @@ int main(int argc, char **argv){
 	
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	
-	GLuint vertexArray, vertexBuffer, colorBuffer, positionBuffer;
+	GLuint vertexArray/*, vertexBuffer, colorBuffer, positionBuffer*/;
 	glGenVertexArrays(1, &vertexArray);
 	glBindVertexArray(vertexArray);
 	
-	std::vector<float> vertexBufferData = {-0.7f, 0.0f, 0.0f, 0.7f, 0.0f, 0.0f, 0.0f, 0.7f, 0.0f};
+	/*std::vector<float> vertexBufferData = {-0.7f, 0.0f, 0.0f, 0.7f, 0.0f, 0.0f, 0.0f, 0.7f, 0.0f};
 	glGenBuffers(1, &vertexBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, vertexBufferData.size() * sizeof(GLfloat), vertexBufferData.data(), GL_STATIC_DRAW);
@@ -138,14 +138,23 @@ int main(int argc, char **argv){
 	std::vector<float> positionBufferData = {2.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f};
 	glGenBuffers(1, &positionBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
-	glBufferData(GL_ARRAY_BUFFER, positionBufferData.size() * sizeof(GLfloat), positionBufferData.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, positionBufferData.size() * sizeof(GLfloat), positionBufferData.data(), GL_STATIC_DRAW);*/
 	
 	float ang = 0, ang2 = 0.0f;
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 	
-	Simulation sim(2000, 200.0f, time(NULL));
+	Simulation2 sim(1000, 200.0f, time(NULL));
+	
+	clock_t time = clock();
 	
 	while(!glfwWindowShouldClose(window)){
+		clock_t time2 = clock();
+		double dt = (double) CLOCKS_PER_SEC / double(time2 - time);
+		time = time2;
+		
+		sim.update(dt);
+		glUseProgram(programParticles);
+		
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 		if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) ang += 0.005f;
@@ -190,8 +199,6 @@ int main(int argc, char **argv){
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(0);*/
-		
-		sim.update(0.0005f);
 		sim.draw();
 		
 		glfwSwapBuffers(window);
