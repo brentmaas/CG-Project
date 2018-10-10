@@ -18,7 +18,8 @@ public:
 private:
 	int N;
 	float g;
-	std::vector<float> xParticles, vParticles, colorBufferData, mass, dForce;
+	std::vector<glm::vec4> xParticles, vParticles, colorBufferData, dForce;
+	std::vector<float> mass;
 	GLuint nID, gID, n2ID, dt2ID;
 	GLuint velocityBuffer, massBuffer;
 	GLuint vertexBuffer, colorBuffer, dForceBuffer, computeProgram, compute2Program;

@@ -7,7 +7,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "Simulation2.hpp"
-#include <time.h>
+#include <chrono>
 
 const float PI  = 3.141592f;
 
@@ -143,14 +143,16 @@ int main(int argc, char **argv){
 	float ang = 0, ang2 = PI / 2;
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 	
-	Simulation2 sim(1000, 1.0f, time(0));
+	auto now = std::chrono::high_resolution_clock::now();
 	
-	clock_t time = clock();
+	Simulation2 sim(1000, 100.0f, std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
 	
 	while(!glfwWindowShouldClose(window)){
-		clock_t time2 = clock();
-		double dt = double(time2 - time) / CLOCKS_PER_SEC;
-		time = time2;
+		auto now2 = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<float> d = now2 - now;
+		float dt = d.count();
+		now = now2;
+		
 		std::cout << 1.0f / dt << std::endl;
 		
 		sim.update(dt / 1000.0f);

@@ -6,13 +6,13 @@ uniform int N;
 uniform float dt;
 
 layout(binding = 0) buffer posBuffer{
-	float positions[];
+	vec4 positions[];
 };
 layout(binding = 1) buffer velBuffer{
-	float velocities[];
+	vec4 velocities[];
 };
 layout(binding = 2) buffer dForceBuffer{
-	float dForces[];
+	vec4 dForces[];
 };
 
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
@@ -20,9 +20,10 @@ void main(){
 	const uint gid = gl_GlobalInvocationID.x;
 	
 	if(gid < N){
-		vec3 f = vec3(0, 0, 0);
+		vec4 f = vec4(0, 0, 0, 1);
 		for(int i = 0;i < N;i++) if(i != gid){
-			f += vec3(dForces[3 * (N * gid + i)], dForces[3 * (N * gid + i) + 1], dForces[3 * (N * gid + i) + 2]);
+			f.xyz += dForces[N * gid + i].xyz;
+			//f += vec3(dForces[3 * (N * gid + i)], dForces[3 * (N * gid + i) + 1], dForces[3 * (N * gid + i) + 2]);
 			//positions[3 * gid] += velocities[3 * gid] * dt + dForces[3 * (N * gid + i)] * dt * dt / 2;
 			//positions[3 * gid + 1] += velocities[3 * gid + 1] * dt + dForces[3 * (N * gid + i) + 1] * dt * dt / 2;
 			//positions[3 * gid + 2] += velocities[3 * gid + 2] * dt + dForces[3 * (N * gid + i) + 2] * dt * dt / 2;
@@ -30,11 +31,13 @@ void main(){
 			//velocities[3 * gid + 1] += dForces[3 * (N * gid + i) + 1] * dt;
 			//velocities[3 * gid + 2] += dForces[3 * (N * gid + i) + 2] * dt;
 		}
-		positions[3 * gid] += velocities[3 * gid] * dt + f.x * dt * dt / 2;
-		positions[3 * gid + 1] += velocities[3 * gid + 1] * dt + f.y * dt * dt / 2;
-		positions[3 * gid + 2] += velocities[3 * gid + 2] * dt + f.z * dt * dt / 2;
-		velocities[3 * gid] += f.x * dt;
-		velocities[3 * gid + 1] += f.y * dt;
-		velocities[3 * gid + 2] += f.z * dt;
+		positions[gid].xyz += velocities[gid].xyz * dt + f.xyz * dt * dt / 2;
+		velocities[gid].xyz += f.xyz * dt;
+		//positions[3 * gid] += velocities[3 * gid] * dt;// + f.x * dt * dt / 2;
+		//positions[3 * gid + 1] += velocities[3 * gid + 1] * dt;// + f.y * dt * dt / 2;
+		//positions[3 * gid + 2] += velocities[3 * gid + 2] * dt;// + f.z * dt * dt / 2;
+		//velocities[3 * gid] += f.x * dt;
+		//velocities[3 * gid + 1] += f.y * dt;
+		//velocities[3 * gid + 2] += f.z * dt;
 	}
 }

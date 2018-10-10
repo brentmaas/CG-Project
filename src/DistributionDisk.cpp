@@ -1,6 +1,7 @@
 #include "DistributionDisk.hpp"
 #include <ctime>
 #include <cmath>
+#include <glm/glm.hpp>
 
 const float PI = 3.141592f;
 
@@ -25,15 +26,15 @@ void DistributionDisk::setH(float hr, float hz){
 	this->hz = hz;
 }
 
-float* DistributionDisk::eval(){
-	float* res = new float[3];
+glm::vec4 DistributionDisk::eval(){
+	glm::vec4 res = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	float dr = dist(dre);
 	float dz = dist(dre);
 	float phi = 2 * PI * dist(dre);
 	float r = -hr * log(1 - dr);
-	res[0] = r * cos(phi);
-	res[1] = r * sin(phi);
-	if(dz <= 0.5f) res[2] = -hz * log(1 - 2 * dz);
-	else res[2] = hz * log(2 * dz - 1);
+	res.x = r * cos(phi);
+	res.y = r * sin(phi);
+	if(dz <= 0.5f) res.z = -hz * log(1 - 2 * dz);
+	else res.z = hz * log(2 * dz - 1);
 	return res;
 }
