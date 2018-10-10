@@ -21,8 +21,11 @@ void main(){
 	const uint gidy = gl_GlobalInvocationID.y;
 	
 	if(gidx < N && gidy < N && gidx != gidy){
-		vec3 p = vec3(positions[3 * gidx], positions[3 * gidx + 1], positions[3 * gidx + 2]);
+		vec3 p = vec3(positions[3 * gidx] - positions[3 * gidy], positions[3 * gidx + 1] - positions[3 * gidy + 1], positions[3 * gidx + 2] - positions[3 * gidy + 2]);
 		float d = length(p);
 		vec3 f = -g * masses[gidx] * masses[gidy] * p / (d * d * d);
+		dForces[3 * (N * gidx + gidy)] = f.x;
+		dForces[3 * (N * gidx + gidy) + 1] = f.y;
+		dForces[3 * (N * gidx + gidy) + 2] = f.z;
 	}
 }

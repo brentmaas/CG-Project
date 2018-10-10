@@ -20,6 +20,21 @@ void main(){
 	const uint gid = gl_GlobalInvocationID.x;
 	
 	if(gid < N){
-		
+		vec3 f = vec3(0, 0, 0);
+		for(int i = 0;i < N;i++) if(i != gid){
+			f += vec3(dForces[3 * (N * gid + i)], dForces[3 * (N * gid + i) + 1], dForces[3 * (N * gid + i) + 2]);
+			//positions[3 * gid] += velocities[3 * gid] * dt + dForces[3 * (N * gid + i)] * dt * dt / 2;
+			//positions[3 * gid + 1] += velocities[3 * gid + 1] * dt + dForces[3 * (N * gid + i) + 1] * dt * dt / 2;
+			//positions[3 * gid + 2] += velocities[3 * gid + 2] * dt + dForces[3 * (N * gid + i) + 2] * dt * dt / 2;
+			//velocities[3 * gid] += dForces[3 * (N * gid + i)] * dt;
+			//velocities[3 * gid + 1] += dForces[3 * (N * gid + i) + 1] * dt;
+			//velocities[3 * gid + 2] += dForces[3 * (N * gid + i) + 2] * dt;
+		}
+		positions[3 * gid] += velocities[3 * gid] * dt + f.x * dt * dt / 2;
+		positions[3 * gid + 1] += velocities[3 * gid + 1] * dt + f.y * dt * dt / 2;
+		positions[3 * gid + 2] += velocities[3 * gid + 2] * dt + f.z * dt * dt / 2;
+		velocities[3 * gid] += f.x * dt;
+		velocities[3 * gid + 1] += f.y * dt;
+		velocities[3 * gid + 2] += f.z * dt;
 	}
 }

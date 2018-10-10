@@ -140,27 +140,28 @@ int main(int argc, char **argv){
 	glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
 	glBufferData(GL_ARRAY_BUFFER, positionBufferData.size() * sizeof(GLfloat), positionBufferData.data(), GL_STATIC_DRAW);*/
 	
-	float ang = 0, ang2 = 0.0f;
+	float ang = 0, ang2 = PI / 2;
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 	
-	Simulation2 sim(1000, 200.0f, time(NULL));
+	Simulation2 sim(1000, 1.0f, time(0));
 	
 	clock_t time = clock();
 	
 	while(!glfwWindowShouldClose(window)){
 		clock_t time2 = clock();
-		double dt = (double) CLOCKS_PER_SEC / double(time2 - time);
+		double dt = double(time2 - time) / CLOCKS_PER_SEC;
 		time = time2;
+		std::cout << 1.0f / dt << std::endl;
 		
-		sim.update(dt);
+		sim.update(dt / 1000.0f);
 		glUseProgram(programParticles);
 		
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) ang += 0.005f;
-		if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) ang -= 0.005f;
-		if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) ang2 -= 0.005f;
-		if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) ang2 += 0.005f;
+		if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) ang += 0.5f * dt;
+		if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) ang -= 0.5f * dt;
+		if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) ang2 -= 0.5f * dt;
+		if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) ang2 += 0.5f * dt;
 		if(ang2 > PI / 2) ang2 = PI / 2;
 		if(ang2 < -PI / 2) ang2 = -PI / 2;
 		glm::mat4 mat = mvp * glm::rotate(glm::mat4(1.0f), ang2, glm::vec3(1, 0, 0)) * glm::rotate(glm::mat4(1.0f), ang, glm::vec3(0, 1, 0));
