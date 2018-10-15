@@ -22,13 +22,7 @@ void main(){
 	
 	if(gidx < N && gidy < N && gidx != gidy){
 		vec4 p = vec4(positions[gidx].xyz - positions[gidy].xyz, 1);
-		//vec3 p = vec3(positions[3 * gidx] - positions[3 * gidy], positions[3 * gidx + 1] - positions[3 * gidy + 1], positions[3 * gidx + 2] - positions[3 * gidy + 2]);
 		float d = length(p.xyz);
-		//vec3 f = -g * masses[gidy] * p / (d * d * d);
-		vec3 f = -g * masses[gidy] * p.xyz / (d * d * d);
-		//dForces[3 * (N * gidx + gidy)] = f.x;
-		//dForces[3 * (N * gidx + gidy) + 1] = f.y;
-		//dForces[3 * (N * gidx + gidy) + 2] = f.z;
-		dForces[N * gidx + gidy].xyz = f;
+		dForces[N * gidx + gidy] = -g * masses[gidy] * p / (d * d * d);
 	}
 }

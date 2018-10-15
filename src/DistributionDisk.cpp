@@ -26,7 +26,7 @@ void DistributionDisk::setH(float hr, float hz){
 	this->hz = hz;
 }
 
-glm::vec4 DistributionDisk::eval(){
+glm::vec4 DistributionDisk::evalPos(){
 	glm::vec4 res = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	float dr = dist(dre);
 	float dz = dist(dre);

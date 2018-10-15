@@ -9,7 +9,7 @@ public:
 	DistributionDisk();
 	DistributionDisk(int seed);
 	void setH(float hr, float hz);
-	glm::vec4 eval();
+	glm::vec4 evalPos();
 private:
 	std::default_random_engine dre;
 	std::uniform_real_distribution<float> dist;

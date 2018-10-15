@@ -105,8 +105,8 @@ int main(int argc, char **argv){
 	
 	glUseProgram(programParticles);
 	
-	glm::mat4 projection = glm::perspective(45.0f, ((float) width) / height, 0.0001f, 10000.0f);
-	glm::mat4 view = glm::lookAt(glm::vec3(0, 0, 50), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+	glm::mat4 projection = glm::perspective(45.0f, ((float) width) / height, 0.000001f, 1000000.0f);
+	glm::mat4 view = glm::lookAt(glm::vec3(0, 0, 500), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 	glm::mat4 model = glm::mat4(1.0f);
 	glm::mat4 mvp = projection * view * model;
 	//GLuint defaultMatrixID = glGetUniformLocation(programDefault, "MVP");
@@ -145,7 +145,7 @@ int main(int argc, char **argv){
 	
 	auto now = std::chrono::high_resolution_clock::now();
 	
-	Simulation2 sim(1000, 100.0f, std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
+	Simulation2 sim(1000, 1.0f, 50.0f, 10.0f, std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
 	
 	while(!glfwWindowShouldClose(window)){
 		auto now2 = std::chrono::high_resolution_clock::now();
@@ -153,9 +153,9 @@ int main(int argc, char **argv){
 		float dt = d.count();
 		now = now2;
 		
-		std::cout << 1.0f / dt << std::endl;
+		//std::cout << 1.0f / dt << std::endl;
 		
-		sim.update(dt / 1000.0f);
+		sim.update(dt / 100.0f);
 		glUseProgram(programParticles);
 		
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
