@@ -24,8 +24,8 @@ void main(){
 		for(int i = 0;i < N;i++) if(i != gid){
 			f.xyz += dForces[N * gid + i].xyz;
 		}
-		//positions[gid] += vec4(velocities[gid].xyz * dt + f.xyz * dt * dt / 2, 0);
-		positions[gid] += vec4(velocities[gid].xyz * dt, 0);
+		positions[gid] += vec4(velocities[gid].xyz * dt + f.xyz * dt * dt / 2, 0);
+		//positions[gid] += vec4(velocities[gid].xyz * dt, 0);
 		velocities[gid] += vec4(f.xyz * dt, 0);
 	}
 }

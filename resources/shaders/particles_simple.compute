@@ -1,0 +1,25 @@
+#version 430 core
+
+//dForce calculations
+
+uniform float m;
+uniform float g;
+uniform vec4 mmp;
+uniform float dt;
+
+layout(binding = 0) buffer posBuffer{
+	vec4 positions[];
+};
+layout(binding = 1) buffer velBuffer{
+	vec4 velocities[];
+};
+
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+void main(){
+	const uint gid = gl_GlobalInvocationID.x;
+	
+	float d = length(mmp - positions[gid]);
+	vec4 a = g * m / (d * d * d) * (mmp - positions[gid]);
+	positions[gid] += velocities[gid] * dt + a * dt * dt / 2;
+	velocities[gid] += a * dt;
+}

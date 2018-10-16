@@ -1,4 +1,5 @@
-#include "Simulation2.hpp"
+#include "SimulationSimple.hpp"
+
 #include <cmath>
 #include <iostream>
 #include <fstream>
@@ -62,25 +63,23 @@ GLuint generateProgram(const char* computeFile){
 	return programID;
 }
 
-Simulation2::Simulation2(){
+Simulation::Simulation(){
 	N = 0;
 	g = 1;
 	hr = 1;
 	hz = 1;
-	nID = 0;
+	mID = 0;
 	gID = 0;
-	n2ID = 0;
-	dt2ID = 0;
+	mmpID = 0;
+	dtID = 0;
 	vertexBuffer = 0;
 	colorBuffer = 0;
 	massBuffer = 0;
 	velocityBuffer = 0;
-	dForceBuffer = 0;
 	computeProgram = 0;
-	compute2Program = 0;
 }
 
-Simulation2::Simulation2(int N, float g, float hr, float hz, int seed){
+Simulation::Simulation(int N, float g, float hr, float hz, int seed){
 	this->N = N;
 	this->g = g;
 	this->hr = hr;
@@ -90,7 +89,6 @@ Simulation2::Simulation2(int N, float g, float hr, float hz, int seed){
 	dist.setH(this->hr, this->hz);
 	xParticles = std::vector<glm::vec4>(N, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	vParticles = std::vector<glm::vec4>(N, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-	dForce = std::vector<glm::vec4>(N * N, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	colorBufferData = std::vector<glm::vec4>(N, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	mass = std::vector<float>(N, 5.0f);
 	
@@ -142,7 +140,11 @@ Simulation2::Simulation2(int N, float g, float hr, float hz, int seed){
 	glBufferData(GL_ARRAY_BUFFER, colorBufferData.size() * sizeof(glm::vec4), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, colorBufferData.size() * sizeof(glm::vec4), colorBufferData.data());
 	
-	computeProgram = generateProgram("resources/shaders/particles.compute");
+	computeProgram = generateProgram("resources/shaders/particles_simple.compute");
+	mID = glGetUniformLocation(computeProgram, "m");
+	gID = glGetUniformLocation(computeProgram, "g");
+	mmpID = glGetUniformLocation(computeProgram, "mmp");
+	dtID = glGetUniformLocation(computeProgram, "dt");
 	
 	glGenBuffers(1, &velocityBuffer);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, velocityBuffer);
@@ -153,18 +155,6 @@ Simulation2::Simulation2(int N, float g, float hr, float hz, int seed){
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, massBuffer);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, mass.size() * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, mass.size() * sizeof(GLfloat), mass.data());
-	
-	compute2Program = generateProgram("resources/shaders/particles.compute2");
-	
-	glGenBuffers(1, &dForceBuffer);
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, dForceBuffer);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, dForce.size() * sizeof(glm::vec4), NULL, GL_STATIC_DRAW);
-	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, dForce.size() * sizeof(glm::vec4), dForce.data());
-	
-	nID = glGetUniformLocation(computeProgram, "N");
-	gID = glGetUniformLocation(computeProgram, "g");
-	n2ID = glGetUniformLocation(compute2Program, "N");
-	dt2ID = glGetUniformLocation(compute2Program, "dt");
 	
 	glm::vec3 mmp2 = glm::vec3(0, 0, 0);
 	float totmass2 = 0;
@@ -190,23 +180,20 @@ Simulation2::Simulation2(int N, float g, float hr, float hz, int seed){
 	//exit(0);
 }
 
-void Simulation2::update(float dt){
+void Simulation::update(float dt){
+	glm::vec4 mmp = glm::vec4(0, 0, 0, 1);
+		float totmass = 0;
+		for(int i = 0;i < N;i++){
+			glm::vec4& x2 = xParticles[i];
+			float m = mass[i];
+			mmp += glm::vec4(m * x2.x, m * x2.y, m * x2.z, 0);
+			totmass += m;
+		}
+		mmp /= totmass;
 	glUseProgram(computeProgram);
-	glUniform1i(nID, N);
 	glUniform1f(gID, g);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertexBuffer);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, massBuffer);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, dForceBuffer);
-	
-	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-	glDispatchCompute(N, N, 1);
-	
-	glUseProgram(compute2Program);
-	glUniform1i(n2ID, N);
-	glUniform1f(dt2ID, dt);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertexBuffer);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, velocityBuffer);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, dForceBuffer);
 	
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 	glDispatchCompute(N, 1, 1);
@@ -220,28 +207,28 @@ void Simulation2::update(float dt){
 	glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, vParticles.size() * sizeof(glm::vec4), v);
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 	
-	glm::vec3 mmp = glm::vec3(0, 0, 0);
-	float totmass = 0;
+	glm::vec3 mmp2 = glm::vec3(0, 0, 0);
+	float totmass2 = 0;
 	for(int i = 0;i < N;i++){
 		glm::vec4& x2 = x[i];
 		float m = mass[i];
-		mmp += glm::vec3(m * x2.x, m * x2.y, m * x2.z);
-		totmass += m;
+		mmp2 += glm::vec3(m * x2.x, m * x2.y, m * x2.z);
+		totmass2 += m;
 	}
-	mmp /= totmass;
+	mmp2 /= totmass2;
 	
 	float energy = 0;
 	for(int i = 0;i < N;i++){
 		glm::vec4& x2 = x[i], v2 = v[i];
-		float r2 = (x2.x - mmp.x) * (x2.x - mmp.x) + (x2.y - mmp.y) * (x2.y - mmp.y) + (x2.z - mmp.z) * (x2.z - mmp.z);
+		float r2 = (x2.x - mmp2.x) * (x2.x - mmp2.x) + (x2.y - mmp2.y) * (x2.y - mmp2.y) + (x2.z - mmp2.z) * (x2.z - mmp2.z);
 		float vel2 = v2.x * v2.x + v2.y * v2.y + v2.z * v2.z;
-		energy += mass[i] * vel2 / 2 - g * mass[i] * totmass / sqrt(r2);
+		energy += mass[i] * vel2 / 2 - g * mass[i] * totmass2 / sqrt(r2);
 	}
 	
 	std::cout << energy << std::endl;
 }
 
-void Simulation2::draw(){
+void Simulation::draw(){
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, (void*) 0);
@@ -256,7 +243,7 @@ void Simulation2::draw(){
 	glDisableVertexAttribArray(0);
 }
 
-Simulation2::~Simulation2(){
+Simulation::~Simulation(){
 	glDeleteBuffers(1, &vertexBuffer);
 	glDeleteBuffers(1, &colorBuffer);
 }
