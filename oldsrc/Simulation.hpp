@@ -8,13 +8,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "DistributionDisk.hpp"
 
-class Simulation {
+class SimulationSimple {
 public:
-	Simulation();
+	SimulationSimple();
 	Simulation(int N, float g, int seed);
 	void update(float dt);
 	void draw();
-	~Simulation();
+	~SimulationSimple();
 private:
 	int N;
 	float g;

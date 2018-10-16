@@ -4,7 +4,7 @@
 
 const float PI  = 3.141592f;
 
-Simulation::Simulation(){
+SimulationSimple::SimulationSimple(){
 	N = 0;
 	g = 1;
 	vertexBuffer = 0;
@@ -12,7 +12,7 @@ Simulation::Simulation(){
 	massBuffer = 0;
 }
 
-Simulation::Simulation(int N, float g, int seed){
+SimulationSimple::Simulation(int N, float g, int seed){
 	//srand(seed);
 	dist = DistributionDisk(seed);
 	dist.setH(5, 1);
@@ -62,7 +62,7 @@ Simulation::Simulation(int N, float g, int seed){
 	glBufferSubData(GL_ARRAY_BUFFER, 0, mass.size() * sizeof(GLfloat), mass.data());
 }
 
-void Simulation::update(float dt){
+void SimulationSimple::update(float dt){
 	for(int i = 0;i < (int) xParticles.size() / 3;i++){
 		float ax = 0, ay = 0, az = 0;
 		for(int j = 0;j < (int) xParticles.size() / 3;j++) if(i != j && mass[i] != 0){
@@ -153,7 +153,7 @@ void Simulation::update(float dt){
 	std::cout << energy << std::endl;*/
 }
 
-void Simulation::draw(){
+void SimulationSimple::draw(){
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);
@@ -168,7 +168,7 @@ void Simulation::draw(){
 	glDisableVertexAttribArray(0);
 }
 
-Simulation::~Simulation(){
+SimulationSimple::~SimulationSimple(){
 	glDeleteBuffers(1, &vertexBuffer);
 	glDeleteBuffers(1, &colorBuffer);
 }

@@ -7,7 +7,7 @@
 #include <glm/glm.hpp>
 
 const float PI  = 3.141592f;
-GLuint loadShader2(const char* file, GLuint type){
+GLuint loadComputeShader2(const char* file, GLuint type){
 	GLuint shaderID = glCreateShader(type);
 	
 	std::string shaderSrc;
@@ -40,8 +40,8 @@ GLuint loadShader2(const char* file, GLuint type){
 	return shaderID;
 }
 
-GLuint generateProgram(const char* computeFile){
-	GLuint computeShaderID = loadShader2(computeFile, GL_COMPUTE_SHADER);
+GLuint generateProgram2(const char* computeFile){
+	GLuint computeShaderID = loadComputeShader2(computeFile, GL_COMPUTE_SHADER);
 	
 	GLuint programID = glCreateProgram();
 	glAttachShader(programID, computeShaderID);
@@ -63,7 +63,7 @@ GLuint generateProgram(const char* computeFile){
 	return programID;
 }
 
-Simulation::Simulation(){
+SimulationSimple::SimulationSimple(){
 	N = 0;
 	g = 1;
 	hr = 1;
@@ -79,7 +79,7 @@ Simulation::Simulation(){
 	computeProgram = 0;
 }
 
-Simulation::Simulation(int N, float g, float hr, float hz, int seed){
+SimulationSimple::SimulationSimple(int N, float g, float hr, float hz, int seed){
 	this->N = N;
 	this->g = g;
 	this->hr = hr;
@@ -140,7 +140,7 @@ Simulation::Simulation(int N, float g, float hr, float hz, int seed){
 	glBufferData(GL_ARRAY_BUFFER, colorBufferData.size() * sizeof(glm::vec4), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, colorBufferData.size() * sizeof(glm::vec4), colorBufferData.data());
 	
-	computeProgram = generateProgram("resources/shaders/particles_simple.compute");
+	computeProgram = generateProgram2("resources/shaders/particles_simple.compute");
 	mID = glGetUniformLocation(computeProgram, "m");
 	gID = glGetUniformLocation(computeProgram, "g");
 	mmpID = glGetUniformLocation(computeProgram, "mmp");
@@ -180,7 +180,7 @@ Simulation::Simulation(int N, float g, float hr, float hz, int seed){
 	//exit(0);
 }
 
-void Simulation::update(float dt){
+void SimulationSimple::update(float dt){
 	glm::vec4 mmp = glm::vec4(0, 0, 0, 1);
 		float totmass = 0;
 		for(int i = 0;i < N;i++){
@@ -191,9 +191,12 @@ void Simulation::update(float dt){
 		}
 		mmp /= totmass;
 	glUseProgram(computeProgram);
+	glUniform1f(mID, totmass);
 	glUniform1f(gID, g);
+	glUniform1fv(mmpID, 1, &mmp[0]);
+	glUniform1f(dtID, dt);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertexBuffer);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, massBuffer);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, velocityBuffer);
 	
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 	glDispatchCompute(N, 1, 1);
@@ -228,7 +231,7 @@ void Simulation::update(float dt){
 	std::cout << energy << std::endl;
 }
 
-void Simulation::draw(){
+void SimulationSimple::draw(){
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, (void*) 0);
@@ -243,7 +246,7 @@ void Simulation::draw(){
 	glDisableVertexAttribArray(0);
 }
 
-Simulation::~Simulation(){
+SimulationSimple::~SimulationSimple(){
 	glDeleteBuffers(1, &vertexBuffer);
 	glDeleteBuffers(1, &colorBuffer);
 }

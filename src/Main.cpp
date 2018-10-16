@@ -7,7 +7,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <chrono>
-#include "Simulation.hpp"
+#include "Simulation2.hpp"
 
 const float PI  = 3.141592f;
 
@@ -72,8 +72,6 @@ GLuint generateProgram(const char* vertexFile, const char* fragmentFile){
 	
 	return programID;
 }
-
-
 
 int main(int argc, char **argv){
 	if(!glfwInit()){
@@ -147,7 +145,7 @@ int main(int argc, char **argv){
 	
 	auto now = std::chrono::high_resolution_clock::now();
 	
-	Simulation sim(1000, 1.0f, 50.0f, 10.0f, std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
+	Simulation2 sim(1000, 1.0f, 50.0f, 10.0f, std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
 	
 	while(!glfwWindowShouldClose(window)){
 		auto now2 = std::chrono::high_resolution_clock::now();
@@ -157,7 +155,7 @@ int main(int argc, char **argv){
 		
 		std::cout << 1.0f / dt << " ";// << std::endl;
 		
-		sim.update(dt);
+		sim.update(dt * 10.0f);
 		glUseProgram(programParticles);
 		
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
