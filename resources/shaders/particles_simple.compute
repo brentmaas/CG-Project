@@ -3,7 +3,6 @@
 uniform int N;
 uniform float m;
 uniform float g;
-uniform vec4 mmp;
 uniform float dt;
 
 layout(binding = 0) buffer posBuffer{
@@ -23,9 +22,9 @@ layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 void main(){
 	const uint gid = gl_GlobalInvocationID.x;
 	if(gid < N){
-		float d = length(mmp - x[gid]);
-		vec4 a = g * m / (d * d * d) * (mmp - x[gid]);
-		if(length(a) > length(v[gid] + a * dt)){
+		float d = length(x[gid]);
+		vec4 a = -g * m / (d * d * d) * x[gid];
+		if(length(a) * 0.5f < length(v[gid] + a * dt)){
 			xt[gid] = x[gid] + v[gid] * dt + a * dt * dt / 2;
 			vt[gid] = v[gid] + a * dt;
 		}else{

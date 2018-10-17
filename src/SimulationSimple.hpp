@@ -17,10 +17,10 @@ public:
 	~SimulationSimple();
 private:
 	int N;
-	float g, hr, hz;
+	float g, hr, hz, totmass;
 	std::vector<glm::vec4> xParticles, vParticles, colorBufferData;
 	std::vector<float> mass;
-	GLuint nID, mID, gID, mmpID, dtID;
+	GLuint nID, mID, gID, dtID;
 	GLuint velocityBuffer, velocityTargetBuffer, massBuffer, vertexBuffer, vertexTargetBuffer, colorBuffer, computeProgram;
 	DistributionDisk dist;
 };

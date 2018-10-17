@@ -7,12 +7,15 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <chrono>
+#include <thread>
 
 #include "SimulationSimple.hpp"
 
 const float PI  = 3.141592f;
 
-const int width = 1200, height = 800;
+const int width = 1000, height = 600;
+
+const float targetFPS = 60.0f;
 
 GLuint loadShader(const char* file, GLuint type){
 	GLuint shaderID = glCreateShader(type);
@@ -85,6 +88,7 @@ int main(int argc, char **argv){
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 	
 	GLFWwindow* window;
 	window = glfwCreateWindow(width, height, "aaa", NULL, NULL);
@@ -146,7 +150,7 @@ int main(int argc, char **argv){
 	
 	auto now = std::chrono::high_resolution_clock::now();
 	
-	SimulationSimple sim(1000, 1.0f, 50.0f, 10.0f, std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
+	SimulationSimple sim(60000, 1.0f, 50.0f, 10.0f, std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
 	
 	while(!glfwWindowShouldClose(window)){
 		auto now2 = std::chrono::high_resolution_clock::now();
@@ -154,7 +158,7 @@ int main(int argc, char **argv){
 		float dt = d.count();
 		now = now2;
 		
-		std::cout << 1.0f / dt << " ";// << std::endl;
+		std::cout << 1.0f / dt << std::endl;
 		
 		sim.update(dt);
 		glUseProgram(programParticles);

@@ -68,10 +68,10 @@ SimulationSimple::SimulationSimple(){
 	g = 1;
 	hr = 1;
 	hz = 1;
+	totmass = 0;
 	nID = 0;
 	mID = 0;
 	gID = 0;
-	mmpID = 0;
 	dtID = 0;
 	vertexBuffer = 0;
 	vertexTargetBuffer = 0;
@@ -108,7 +108,7 @@ SimulationSimple::SimulationSimple(int N, float g, float hr, float hz, int seed)
 	}
 	
 	glm::vec3 mmp = glm::vec3(0, 0, 0);
-	float totmass = 0;
+	totmass = 0;
 	for(int i = 0;i < N;i++){
 		glm::vec4& x = xParticles[i];
 		float m = mass[i];
@@ -118,19 +118,22 @@ SimulationSimple::SimulationSimple(int N, float g, float hr, float hz, int seed)
 	mmp /= totmass;
 	for(int i = 0;i < N;i++){
 		glm::vec4& x = xParticles[i];
-		float r = sqrt((x.x - mmp.x) * (x.x - mmp.x) + (x.y - mmp.y) * (x.y - mmp.y) + (x.z - mmp.z) * (x.z - mmp.z));
+		x.x -= mmp.x;
+		x.y -= mmp.y;
+		x.z -= mmp.z;
+		float r = sqrt(x.x * x.x + x.y * x.y + x.z * x.z);
 		glm::vec4& v = vParticles[i];
 		if(r <= 0){
 			v = glm::vec4(0, 0, 0, 0);
 			continue;
 		}
 		float vtot = sqrt(g * totmass / r);
-		float rproj = sqrt((x.x - mmp.x) * (x.x - mmp.x) + (x.z - mmp.z) * (x.z - mmp.z));
-		float costheta = glm::dot(glm::vec3((x.x - mmp.x) / r, (x.y - mmp.y) / r, (x.z - mmp.z) / r), glm::vec3((x.x - mmp.x) / rproj, 0, (x.z - mmp.z) / rproj));
+		float rproj = sqrt(x.x * x.x + x.z * x.z);
+		float costheta = glm::dot(glm::vec3(x.x / r, x.y / r, x.z / r), glm::vec3(x.x / rproj, 0, x.z / rproj));
 		float vproj = vtot * costheta;
-		v.x = vproj * (x.z - mmp.z) / rproj;
+		v.x = vproj * x.z / rproj;
 		v.y = -vtot * sqrt(std::max(0.0f, 1 - costheta * costheta));
-		v.z = -vproj * (x.x - mmp.x) / rproj;
+		v.z = -vproj * x.x / rproj;
 	}
 	
 	glGenBuffers(1, &vertexBuffer);
@@ -151,7 +154,6 @@ SimulationSimple::SimulationSimple(int N, float g, float hr, float hz, int seed)
 	computeProgram = generateProgram2("resources/shaders/particles_simple.compute");
 	mID = glGetUniformLocation(computeProgram, "m");
 	gID = glGetUniformLocation(computeProgram, "g");
-	mmpID = glGetUniformLocation(computeProgram, "mmp");
 	dtID = glGetUniformLocation(computeProgram, "dt");
 	nID = glGetUniformLocation(computeProgram, "N");
 	
@@ -195,20 +197,10 @@ SimulationSimple::SimulationSimple(int N, float g, float hr, float hz, int seed)
 }
 
 void SimulationSimple::update(float dt){
-	glm::vec4 mmp = glm::vec4(0, 0, 0, 1);
-		float totmass = 0;
-		for(int i = 0;i < N;i++){
-			glm::vec4& x2 = xParticles[i];
-			float m = mass[i];
-			mmp += glm::vec4(m * x2.x, m * x2.y, m * x2.z, 0);
-			totmass += m;
-		}
-		mmp /= totmass;
 	glUseProgram(computeProgram);
 	glUniform1i(nID, N);
 	glUniform1f(mID, totmass);
 	glUniform1f(gID, g);
-	glUniform1fv(mmpID, 1, &mmp[0]);
 	glUniform1f(dtID, dt);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertexBuffer);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, vertexTargetBuffer);
@@ -223,7 +215,7 @@ void SimulationSimple::update(float dt){
 	std::swap(velocityBuffer, velocityTargetBuffer);
 	
 	//Energy check
-	glm::vec4 x[N], v[N];
+	/*glm::vec4 x[N], v[N];
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, vertexBuffer);
 	glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, xParticles.size() * sizeof(glm::vec4), x);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, velocityBuffer);
@@ -248,7 +240,7 @@ void SimulationSimple::update(float dt){
 		energy += mass[i] * vel2 / 2 - g * mass[i] * totmass2 / sqrt(r2);
 	}
 	
-	std::cout << energy << std::endl;
+	std::cout << energy << std::endl;*/
 }
 
 void SimulationSimple::draw(){
