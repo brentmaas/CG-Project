@@ -26,23 +26,20 @@ void main(){
 	if(gid < N){
 		vec4 dx = vec4(0, 0, 0, 0);
 		vec4 dv = vec4(0, 0, 0, 0);
-		
-		int collision = 0;
+		vec4 ag = vec4(0, 0, 0, 0);
 		
 		for(int i = 0;i < N;i++) if(i != gid){
 			vec4 r = x[gid] - x[i];
 			float d = length(r);
-			vec4 ag = -g * m[i] * r / (d * d * d);
-			if(length(ag) > 10){
-				collision = 1;
-			}else{
-				dx += ag * dt * dt / 2;
-				dv += ag * dt;
-			}
+			ag -= g * m[i] * r / (d * d * d);
 		}
-		if(collision == 0){
-			xt[gid] = x[gid] + v[gid] * dt + dx;
-			vt[gid] = v[gid] + dv;
+		
+		if(length(ag) > length(v[gid] + ag * dt)){
+			xt[gid] = x[gid] + v[gid] * dt + ag * dt * dt / 2;
+			vt[gid] = v[gid] + ag * dt;
+		}else{
+			xt[gid] = length(x[gid]) * normalize(x[gid] + v[gid] * dt);
+			vt[gid] = length(v[gid]) * normalize(xt[gid] - x[gid]);
 		}
 	}
 }

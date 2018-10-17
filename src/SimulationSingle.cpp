@@ -90,7 +90,7 @@ SimulationSingle::SimulationSingle(int N, float g, float hr, float hz, int seed)
 	dist = DistributionDisk(seed);
 	dist.setH(this->hr, this->hz);
 	xParticles = std::vector<glm::vec4>(N, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-	vParticles = std::vector<glm::vec4>(N, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	vParticles = std::vector<glm::vec4>(N, glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
 	colorBufferData = std::vector<glm::vec4>(N, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	mass = std::vector<float>(N, 5.0f);
 	
@@ -100,7 +100,6 @@ SimulationSingle::SimulationSingle(int N, float g, float hr, float hz, int seed)
 		x.x = pos.x;
 		x.y = pos.z;
 		x.z = pos.y;
-		x.w = 1;
 		glm::vec4& c = colorBufferData[i];
 		c.x = ((float) rand()) / RAND_MAX;
 		c.y = ((float) rand()) / RAND_MAX;
@@ -127,7 +126,6 @@ SimulationSingle::SimulationSingle(int N, float g, float hr, float hz, int seed)
 		v.x = vproj * (x.z - mmp.z) / rproj;
 		v.y = ((x.y - mmp.y < 0) - (x.y - mmp.y > 0)) * vtot * sqrt(std::max(0.0f, 1 - costheta * costheta));
 		v.z = -vproj * (x.x - mmp.x) / rproj;
-		v.w = 0;
 		//std::cout << v.x << " " << v.y << " " << v.z << " " << v.w << std::endl;
 	}
 	//exit(0);

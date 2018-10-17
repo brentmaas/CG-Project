@@ -68,14 +68,17 @@ SimulationSimple::SimulationSimple(){
 	g = 1;
 	hr = 1;
 	hz = 1;
+	nID = 0;
 	mID = 0;
 	gID = 0;
 	mmpID = 0;
 	dtID = 0;
 	vertexBuffer = 0;
+	vertexTargetBuffer = 0;
 	colorBuffer = 0;
 	massBuffer = 0;
 	velocityBuffer = 0;
+	velocityTargetBuffer = 0;
 	computeProgram = 0;
 }
 
@@ -126,12 +129,17 @@ SimulationSimple::SimulationSimple(int N, float g, float hr, float hz, int seed)
 		float costheta = glm::dot(glm::vec3((x.x - mmp.x) / r, (x.y - mmp.y) / r, (x.z - mmp.z) / r), glm::vec3((x.x - mmp.x) / rproj, 0, (x.z - mmp.z) / rproj));
 		float vproj = vtot * costheta;
 		v.x = vproj * (x.z - mmp.z) / rproj;
-		v.y = vtot * sqrt(std::max(0.0f, 1 - costheta * costheta));
+		v.y = -vtot * sqrt(std::max(0.0f, 1 - costheta * costheta));
 		v.z = -vproj * (x.x - mmp.x) / rproj;
 	}
 	
 	glGenBuffers(1, &vertexBuffer);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, vertexBuffer);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, xParticles.size() * sizeof(glm::vec4), NULL, GL_STATIC_DRAW);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, xParticles.size() * sizeof(glm::vec4), xParticles.data());
+	
+	glGenBuffers(1, &vertexTargetBuffer);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, vertexTargetBuffer);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, xParticles.size() * sizeof(glm::vec4), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, xParticles.size() * sizeof(glm::vec4), xParticles.data());
 	
@@ -145,9 +153,15 @@ SimulationSimple::SimulationSimple(int N, float g, float hr, float hz, int seed)
 	gID = glGetUniformLocation(computeProgram, "g");
 	mmpID = glGetUniformLocation(computeProgram, "mmp");
 	dtID = glGetUniformLocation(computeProgram, "dt");
+	nID = glGetUniformLocation(computeProgram, "N");
 	
 	glGenBuffers(1, &velocityBuffer);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, velocityBuffer);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, vParticles.size() * sizeof(glm::vec4), NULL, GL_STATIC_DRAW);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, vParticles.size() * sizeof(glm::vec4), vParticles.data());
+	
+	glGenBuffers(1, &velocityTargetBuffer);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, velocityTargetBuffer);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, vParticles.size() * sizeof(glm::vec4), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, vParticles.size() * sizeof(glm::vec4), vParticles.data());
 	
@@ -191,18 +205,24 @@ void SimulationSimple::update(float dt){
 		}
 		mmp /= totmass;
 	glUseProgram(computeProgram);
+	glUniform1i(nID, N);
 	glUniform1f(mID, totmass);
 	glUniform1f(gID, g);
 	glUniform1fv(mmpID, 1, &mmp[0]);
 	glUniform1f(dtID, dt);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertexBuffer);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, velocityBuffer);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, vertexTargetBuffer);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, velocityBuffer);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, velocityTargetBuffer);
 	
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 	glDispatchCompute(N, 1, 1);
+	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	
+	std::swap(vertexBuffer, vertexTargetBuffer);
+	std::swap(velocityBuffer, velocityTargetBuffer);
 	
 	//Energy check
-	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 	glm::vec4 x[N], v[N];
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, vertexBuffer);
 	glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, xParticles.size() * sizeof(glm::vec4), x);

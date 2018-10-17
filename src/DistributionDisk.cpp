@@ -31,8 +31,8 @@ glm::vec4 DistributionDisk::evalPos(){
 	float dr = dist(dre);
 	float dz = dist(dre);
 	float phi = 2 * PI * dist(dre);
-	//float r = -hr * log(1 - dr);
-	float r = -hr * log((1 - dr) * 0.5f);
+	float r = -hr * log(1 - dr);
+	//float r = -hr * log((1 - dr) * 0.5f);
 	res.x = r * cos(phi);
 	res.y = r * sin(phi);
 	if(dz <= 0.5f) res.z = -hz * log(1 - 2 * dz);

@@ -8,7 +8,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <chrono>
 
-#include "SimulationSingle.hpp"
+#include "SimulationSimple.hpp"
 
 const float PI  = 3.141592f;
 
@@ -146,7 +146,7 @@ int main(int argc, char **argv){
 	
 	auto now = std::chrono::high_resolution_clock::now();
 	
-	SimulationSingle sim(1000, 1.0f, 50.0f, 10.0f, std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
+	SimulationSimple sim(1000, 1.0f, 50.0f, 10.0f, std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
 	
 	while(!glfwWindowShouldClose(window)){
 		auto now2 = std::chrono::high_resolution_clock::now();

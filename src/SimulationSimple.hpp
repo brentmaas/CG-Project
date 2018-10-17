@@ -20,9 +20,8 @@ private:
 	float g, hr, hz;
 	std::vector<glm::vec4> xParticles, vParticles, colorBufferData;
 	std::vector<float> mass;
-	GLuint mID, gID, mmpID, dtID;
-	GLuint velocityBuffer, massBuffer;
-	GLuint vertexBuffer, colorBuffer, computeProgram;
+	GLuint nID, mID, gID, mmpID, dtID;
+	GLuint velocityBuffer, velocityTargetBuffer, massBuffer, vertexBuffer, vertexTargetBuffer, colorBuffer, computeProgram;
 	DistributionDisk dist;
 };
 
