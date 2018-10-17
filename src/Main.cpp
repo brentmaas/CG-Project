@@ -7,7 +7,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <chrono>
-#include "Simulation2.hpp"
+
+#include "SimulationSingle.hpp"
 
 const float PI  = 3.141592f;
 
@@ -145,7 +146,7 @@ int main(int argc, char **argv){
 	
 	auto now = std::chrono::high_resolution_clock::now();
 	
-	Simulation2 sim(1000, 1.0f, 50.0f, 10.0f, std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
+	SimulationSingle sim(1000, 1.0f, 50.0f, 10.0f, std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
 	
 	while(!glfwWindowShouldClose(window)){
 		auto now2 = std::chrono::high_resolution_clock::now();
@@ -155,7 +156,7 @@ int main(int argc, char **argv){
 		
 		std::cout << 1.0f / dt << " ";// << std::endl;
 		
-		sim.update(dt * 10.0f);
+		sim.update(dt);
 		glUseProgram(programParticles);
 		
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
