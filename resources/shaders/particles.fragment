@@ -17,5 +17,5 @@ void main(){
 	if (length(gl_PointCoord - 0.5) > 0.5) {
 		discard;
 	} else
-		color = vec4(vertexColor.xyz, sinc2(2 * pi * length(gl_PointCoord - 0.5)));
+		color = vec4(vertexColor.xyz, min(1, vertexColor.w * sinc2(2 * pi * length(gl_PointCoord - 0.5))));
 }

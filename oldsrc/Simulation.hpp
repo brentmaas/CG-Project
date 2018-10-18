@@ -8,18 +8,21 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "DistributionDisk.hpp"
 
-class SimulationSimple {
+class Simulation {
 public:
-	SimulationSimple();
-	Simulation(int N, float g, int seed);
+	Simulation();
+	Simulation(int N, float g, float hr, float hz, int seed);
 	void update(float dt);
 	void draw();
-	~SimulationSimple();
+	~Simulation();
 private:
 	int N;
-	float g;
-	std::vector<float> xParticles, vParticles, colorBufferData, mass;
-	GLuint vertexBuffer, colorBuffer, massBuffer;
+	float g, hr, hz;
+	std::vector<glm::vec4> xParticles, vParticles, colorBufferData, dForce;
+	std::vector<float> mass;
+	GLuint nID, gID, n2ID, dt2ID;
+	GLuint velocityBuffer, massBuffer;
+	GLuint vertexBuffer, colorBuffer, dForceBuffer, computeProgram, compute2Program;
 	DistributionDisk dist;
 };
 

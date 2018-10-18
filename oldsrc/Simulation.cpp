@@ -1,162 +1,251 @@
-#include "Simulation.hpp"
 #include <cmath>
 #include <iostream>
+#include <fstream>
+#include <sstream>
+#include <glm/glm.hpp>
+#include "Simulation.hpp"
 
 const float PI  = 3.141592f;
+GLuint loadComputeShader(const char* file, GLuint type){
+	GLuint shaderID = glCreateShader(type);
+	
+	std::string shaderSrc;
+	std::ifstream shaderStream(file, std::ios::in);
+	if(shaderStream.is_open()){
+		std::stringstream strStream;
+		strStream << shaderStream.rdbuf();
+		shaderSrc = strStream.str();
+		shaderStream.close();
+	}else{
+		std::cerr << "Could not open" << file << std::endl;
+		getchar();
+		return 0;
+	}
+	
+	char const * srcPtr = shaderSrc.c_str();
+	glShaderSource(shaderID, 1, &srcPtr, NULL);
+	glCompileShader(shaderID);
+	
+	GLint result = GL_FALSE;
+	int infoLogLength;
+	glGetShaderiv(shaderID, GL_COMPILE_STATUS, &result);
+	glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
+	if(infoLogLength > 0){
+		std::vector<char> errMsg(infoLogLength + 1);
+		glGetShaderInfoLog(shaderID, infoLogLength, NULL, &errMsg[0]);
+		std::cerr << &errMsg[0] << std::endl;
+	}
+	
+	return shaderID;
+}
 
-SimulationSimple::SimulationSimple(){
+GLuint generateProgram(const char* computeFile){
+	GLuint computeShaderID = loadComputeShader(computeFile, GL_COMPUTE_SHADER);
+	
+	GLuint programID = glCreateProgram();
+	glAttachShader(programID, computeShaderID);
+	glLinkProgram(programID);
+	
+	GLint result = GL_FALSE;
+	int infoLogLength;
+	glGetProgramiv(programID, GL_LINK_STATUS, &result);
+	glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &infoLogLength);
+	if(infoLogLength > 0){
+		std::vector<char> errMsg(infoLogLength + 1);
+		glGetProgramInfoLog(programID, infoLogLength, NULL, &errMsg[0]);
+		std::cerr << &errMsg[0] << std::endl;
+	}
+	
+	glDetachShader(programID, computeShaderID);
+	glDeleteShader(computeShaderID);
+	
+	return programID;
+}
+
+Simulation::Simulation(){
 	N = 0;
 	g = 1;
+	hr = 1;
+	hz = 1;
+	nID = 0;
+	gID = 0;
+	n2ID = 0;
+	dt2ID = 0;
 	vertexBuffer = 0;
 	colorBuffer = 0;
 	massBuffer = 0;
+	velocityBuffer = 0;
+	dForceBuffer = 0;
+	computeProgram = 0;
+	compute2Program = 0;
 }
 
-SimulationSimple::Simulation(int N, float g, int seed){
-	//srand(seed);
-	dist = DistributionDisk(seed);
-	dist.setH(5, 1);
+Simulation::Simulation(int N, float g, float hr, float hz, int seed){
 	this->N = N;
 	this->g = g;
-	xParticles = std::vector<float>(3 * N, 0.0f);
-	vParticles = std::vector<float>(3 * N, 0.0f);
-	colorBufferData = std::vector<float>(4 * N, 1.0f);
+	this->hr = hr;
+	this->hz = hz;
+	srand(seed);
+	dist = DistributionDisk(seed);
+	dist.setH(this->hr, this->hz);
+	xParticles = std::vector<glm::vec4>(N, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	vParticles = std::vector<glm::vec4>(N, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	dForce = std::vector<glm::vec4>(N * N, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	colorBufferData = std::vector<glm::vec4>(N, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	mass = std::vector<float>(N, 5.0f);
+	
 	for(int i = 0;i < N;i++){
-		//float p = 2 * PI * ((float) rand()) / RAND_MAX;
-		//float t = PI * ((float) rand()) / RAND_MAX;
-		//float vp = 2 * PI * ((float) rand()) / RAND_MAX;
-		//float vp = p + PI / 2;
-		//float vt = PI * ((float) rand()) / RAND_MAX;
-		//float vt = PI / 2;
-		//xParticles[3 * i] = 10 * cos(p) * sin(t);
-		//xParticles[3 * i + 1] = 10 * sin(p) * sin(t);
-		//xParticles[3 * i + 2] = 10 * cos(t);
-		//vParticles[3 * i] = 1 * cos(vp) * sin(vt);
-		//vParticles[3 * i + 1] = 1 * sin(vp) * sin(vt);
-		//vParticles[3 * i + 2] = 1 * cos(vt);
 		glm::vec4 pos = dist.evalPos();
-		xParticles[3 * i] = pos.x;
-		xParticles[3 * i + 1] = pos.z;
-		xParticles[3 * i + 2] = pos.y;
-		vParticles[3 * i] = -pos.y;
-		vParticles[3 * i + 1] = 0.0f;
-		vParticles[3 * i + 2] = pos.x;
-		colorBufferData[4 * i] = ((float) rand()) / RAND_MAX;
-		colorBufferData[4 * i + 1] = ((float) rand()) / RAND_MAX;
-		colorBufferData[4 * i + 2] = ((float) rand()) / RAND_MAX;
+		glm::vec4& x = xParticles[i];
+		x.x = pos.x;
+		x.y = pos.z;
+		x.z = pos.y;
+		glm::vec4& c = colorBufferData[i];
+		c.x = ((float) rand()) / RAND_MAX;
+		c.y = ((float) rand()) / RAND_MAX;
+		c.z = ((float) rand()) / RAND_MAX;
 	}
+	
+	glm::vec3 mmp = glm::vec3(0, 0, 0);
+	float totmass = 0;
+	for(int i = 0;i < N;i++){
+		glm::vec4& x = xParticles[i];
+		float m = mass[i];
+		mmp += glm::vec3(m * x.x, m * x.y, m * x.z);
+		totmass += m;
+	}
+	mmp /= totmass;
+	for(int i = 0;i < N;i++){
+		glm::vec4& x = xParticles[i];
+		float r = sqrt((x.x - mmp.x) * (x.x - mmp.x) + (x.y - mmp.y) * (x.y - mmp.y) + (x.z - mmp.z) * (x.z - mmp.z));
+		glm::vec4& v = vParticles[i];
+		if(r <= 0){
+			v = glm::vec4(0, 0, 0, 0);
+			continue;
+		}
+		float vtot = sqrt(g * totmass / r);
+		float rproj = sqrt((x.x - mmp.x) * (x.x - mmp.x) + (x.z - mmp.z) * (x.z - mmp.z));
+		float costheta = glm::dot(glm::vec3((x.x - mmp.x) / r, (x.y - mmp.y) / r, (x.z - mmp.z) / r), glm::vec3((x.x - mmp.x) / rproj, 0, (x.z - mmp.z) / rproj));
+		float vproj = vtot * costheta;
+		v.x = vproj * (x.z - mmp.z) / rproj;
+		v.y = vtot * sqrt(std::max(0.0f, 1 - costheta * costheta));
+		v.z = -vproj * (x.x - mmp.x) / rproj;
+	}
+	
 	glGenBuffers(1, &vertexBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-	glBufferData(GL_ARRAY_BUFFER, xParticles.size() * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, xParticles.size() * sizeof(GLfloat), xParticles.data());
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, vertexBuffer);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, xParticles.size() * sizeof(glm::vec4), NULL, GL_STATIC_DRAW);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, xParticles.size() * sizeof(glm::vec4), xParticles.data());
 	
 	glGenBuffers(1, &colorBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
-	glBufferData(GL_ARRAY_BUFFER, colorBufferData.size() * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, colorBufferData.size() * sizeof(GLfloat), colorBufferData.data());
+	glBufferData(GL_ARRAY_BUFFER, colorBufferData.size() * sizeof(glm::vec4), NULL, GL_STATIC_DRAW);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, colorBufferData.size() * sizeof(glm::vec4), colorBufferData.data());
+	
+	computeProgram = generateProgram("resources/shaders/particles.compute");
+	
+	glGenBuffers(1, &velocityBuffer);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, velocityBuffer);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, vParticles.size() * sizeof(glm::vec4), NULL, GL_STATIC_DRAW);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, vParticles.size() * sizeof(glm::vec4), vParticles.data());
 	
 	glGenBuffers(1, &massBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, massBuffer);
-	glBufferData(GL_ARRAY_BUFFER, mass.size() * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, mass.size() * sizeof(GLfloat), mass.data());
-}
-
-void SimulationSimple::update(float dt){
-	for(int i = 0;i < (int) xParticles.size() / 3;i++){
-		float ax = 0, ay = 0, az = 0;
-		for(int j = 0;j < (int) xParticles.size() / 3;j++) if(i != j && mass[i] != 0){
-			float dx = xParticles[3 * i] - xParticles[3 * j];
-			float dy = xParticles[3 * i + 1] - xParticles[3 * j + 1];
-			float dz = xParticles[3 * i + 2] - xParticles[3 * j + 2];
-			float d = sqrt(dx * dx + dy * dy + dz * dz);
-			
-			if(d <= 0.0005f * (mass[i] + mass[j])){
-				vParticles[3 * i] = (mass[i] * vParticles[3 * i] + mass[j] * vParticles[3 * j]) / (mass[i] + mass[j]);
-				vParticles[3 * i + 1] = (mass[i] * vParticles[3 * i + 1] + mass[j] * vParticles[3 * j + 1]) / (mass[i] + mass[j]);
-				vParticles[3 * i + 2] = (mass[i] * vParticles[3 * i + 2] + mass[j] * vParticles[3 * j + 2]) / (mass[i] + mass[j]);
-				mass[i] += mass[j];
-				mass[j] = 0;
-			}else{
-				ax -= g * mass[j] * dx / (d * d * d) * dt;
-				ay -= g * mass[j] * dy / (d * d * d) * dt;
-				az -= g * mass[j] * dz / (d * d * d) * dt;
-			}
-		}
-		xParticles[3 * i] += vParticles[3 * i] * dt + 0.5f * ax * dt * dt;
-		xParticles[3 * i + 1] += vParticles[3 * i + 1] * dt + 0.5f * ay * dt * dt;
-		xParticles[3 * i + 2] += vParticles[3 * i + 2] * dt + 0.5f * az * dt * dt;
-		vParticles[3 * i] += ax * dt;
-		vParticles[3 * i + 1] += ay * dt;
-		vParticles[3 * i + 2] += az * dt;
-	}
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, massBuffer);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, mass.size() * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, mass.size() * sizeof(GLfloat), mass.data());
 	
-	int discard = 0;
-	for(int i = 0;i < (int) mass.size();i++) if(mass[i] <= 0) discard++;
-	if(discard > 0){
-		std::vector<float> xParticles2(xParticles.size() - 3 * discard);
-		std::vector<float> vParticles2(xParticles.size() - 3 * discard);
-		std::vector<float> colorBufferData2(colorBufferData.size() - 4 * discard);
-		std::vector<float> mass2(mass.size() - discard);
-		int i2 = 0;
-		for(int i = 0;i < (int) mass.size();i++) if(mass[i] > 0){
-			xParticles2[3 * i2] = xParticles[3 * i];
-			xParticles2[3 * i2 + 1] = xParticles[3 * i + 1];
-			xParticles2[3 * i2 + 2] = xParticles[3 * i + 2];
-			vParticles2[3 * i2] = vParticles[3 * i];
-			vParticles2[3 * i2 + 1] = vParticles[3 * i + 1];
-			vParticles2[3 * i2 + 2] = vParticles[3 * i + 2];
-			colorBufferData2[4 * i2] = colorBufferData[4 * i];
-			colorBufferData2[4 * i2 + 1] = colorBufferData[4 * i + 1];
-			colorBufferData2[4 * i2 + 2] = colorBufferData[4 * i + 2];
-			colorBufferData2[4 * i2 + 3] = colorBufferData[4 * i + 3];
-			mass2[i2] = mass[i];
-			i2++;
-		}
-		
-		xParticles = xParticles2;
-		vParticles = vParticles2;
-		colorBufferData = colorBufferData2;
-		mass = mass2;
-		
-		glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
-		glBufferData(GL_ARRAY_BUFFER, colorBufferData.size() * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, colorBufferData.size() * sizeof(GLfloat), colorBufferData.data());
-	}
-	//std::cout << mass.size() << std::endl;
+	compute2Program = generateProgram("resources/shaders/particles.compute2");
 	
-	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-	glBufferData(GL_ARRAY_BUFFER, xParticles.size() * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, xParticles.size() * sizeof(GLfloat), xParticles.data());
+	glGenBuffers(1, &dForceBuffer);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, dForceBuffer);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, dForce.size() * sizeof(glm::vec4), NULL, GL_STATIC_DRAW);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, dForce.size() * sizeof(glm::vec4), dForce.data());
 	
-	glBindBuffer(GL_ARRAY_BUFFER, massBuffer);
-	glBufferData(GL_ARRAY_BUFFER, mass.size() * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, mass.size() * sizeof(GLfloat), mass.data());
+	nID = glGetUniformLocation(computeProgram, "N");
+	gID = glGetUniformLocation(computeProgram, "g");
+	n2ID = glGetUniformLocation(compute2Program, "N");
+	dt2ID = glGetUniformLocation(compute2Program, "dt");
 	
-	/*float energy = 0.0f;
+	glm::vec3 mmp2 = glm::vec3(0, 0, 0);
+	float totmass2 = 0;
 	for(int i = 0;i < N;i++){
-		float vx = vParticles[3 * i];
-		float vy = vParticles[3 * i + 1];
-		float vz = vParticles[3 * i + 2];
-		energy += 0.5f * mass[i] * (vx*vx + vy*vy + vz*vz);
-		float x = xParticles[3 * i];
-		float y = xParticles[3 * i + 1];
-		float z = xParticles[3 * i + 2];
-		for(int j = 0;j < N;j++) if(i != j){
-			float x2 = xParticles[3 * j];
-			float y2 = xParticles[3 * j + 1];
-			float z2 = xParticles[3 * j + 2];
-			float d = sqrt((x-x2)*(x-x2) + (y-y2)*(y-y2) + (z-z2)*(z-z2));
-			energy -= g * mass[i] * mass[j] / d;
-		}
+		glm::vec4& x2 = xParticles[i];
+		float m = mass[i];
+		mmp2 += glm::vec3(m * x2.x, m * x2.y, m * x2.z);
+		totmass2 += m;
 	}
-	std::cout << energy << std::endl;*/
+	mmp2 /= totmass2;
+	
+	float energy = 0;
+	for(int i = 0;i < N;i++){
+		glm::vec4& x2 = xParticles[i], v2 = vParticles[i];
+		//std::cout << "x: " << x2.x << " " << x2.y << " " << x2.z << " " << x2.w << std::endl;
+		//std::cout << "v: " << v2.x << " " << v2.y << " " << v2.z << " " << v2.w << std::endl;
+		float r2 = (x2.x - mmp2.x) * (x2.x - mmp2.x) + (x2.y - mmp2.y) * (x2.y - mmp2.y) + (x2.z - mmp2.z) * (x2.z - mmp2.z);
+		float vel2 = v2.x * v2.x + v2.y * v2.y + v2.z * v2.z;
+		energy += mass[i] * vel2 / 2 - g * mass[i] * totmass2 / sqrt(r2);
+	}
+	
+	std::cout << "Starting energy: " << energy << std::endl;
+	//exit(0);
 }
 
-void SimulationSimple::draw(){
+void Simulation::update(float dt){
+	glUseProgram(computeProgram);
+	glUniform1i(nID, N);
+	glUniform1f(gID, g);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertexBuffer);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, massBuffer);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, dForceBuffer);
+	
+	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	glDispatchCompute(N, N, 1);
+	
+	glUseProgram(compute2Program);
+	glUniform1i(n2ID, N);
+	glUniform1f(dt2ID, dt);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertexBuffer);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, velocityBuffer);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, dForceBuffer);
+	
+	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	glDispatchCompute(N, 1, 1);
+	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	
+	//Energy check
+	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	glm::vec4 x[N], v[N];
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, vertexBuffer);
+	glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, xParticles.size() * sizeof(glm::vec4), x);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, velocityBuffer);
+	glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, vParticles.size() * sizeof(glm::vec4), v);
+	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	
+	glm::vec3 mmp = glm::vec3(0, 0, 0);
+	float totmass = 0;
+	for(int i = 0;i < N;i++){
+		glm::vec4& x2 = x[i];
+		float m = mass[i];
+		mmp += glm::vec3(m * x2.x, m * x2.y, m * x2.z);
+		totmass += m;
+	}
+	mmp /= totmass;
+	
+	float energy = 0;
+	for(int i = 0;i < N;i++){
+		glm::vec4& x2 = x[i], v2 = v[i];
+		float r2 = (x2.x - mmp.x) * (x2.x - mmp.x) + (x2.y - mmp.y) * (x2.y - mmp.y) + (x2.z - mmp.z) * (x2.z - mmp.z);
+		float vel2 = v2.x * v2.x + v2.y * v2.y + v2.z * v2.z;
+		energy += mass[i] * vel2 / 2 - g * mass[i] * totmass / sqrt(r2);
+	}
+	
+	std::cout << energy << std::endl;
+}
+
+void Simulation::draw(){
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*) 0);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, (void*) 0);
 	glEnableVertexAttribArray(1);
 	glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (void*) 0);
@@ -168,7 +257,7 @@ void SimulationSimple::draw(){
 	glDisableVertexAttribArray(0);
 }
 
-SimulationSimple::~SimulationSimple(){
+Simulation::~Simulation(){
 	glDeleteBuffers(1, &vertexBuffer);
 	glDeleteBuffers(1, &colorBuffer);
 }

@@ -39,4 +39,4 @@ glm::vec4 getColor(float T){
 	return c;
 }
 
-#endif COLOR_HPP
+#endif

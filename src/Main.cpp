@@ -11,6 +11,8 @@
 
 #include "SimulationSimple.hpp"
 
+const std::string title = "CG Project Brent Maas";
+
 const float PI  = 3.141592f;
 
 const int width = 1000, height = 600;
@@ -91,7 +93,7 @@ int main(int argc, char **argv){
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 	
 	GLFWwindow* window;
-	window = glfwCreateWindow(width, height, "aaa", NULL, NULL);
+	window = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
 	if(window == NULL){
 		std::cerr << "Could not create window." << std::endl;
 		glfwTerminate();
@@ -160,9 +162,10 @@ int main(int argc, char **argv){
 		float dt = d.count();
 		now = now2;
 		
-		std::cout << 1.0f / dt << std::endl;
+		//std::cout << 1.0f / dt << std::endl;
+		glfwSetWindowTitle(window, (title + " - " + std::to_string((int) (1.0f / dt)) + " fps").c_str());
 		
-		sim.update(dt);
+		sim.update(dt / 10.0f);
 		glUseProgram(programParticles);
 		
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

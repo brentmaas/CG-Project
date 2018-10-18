@@ -5,10 +5,11 @@
 #include <fstream>
 #include <sstream>
 #include <glm/glm.hpp>
-#include "Color.hpp"
+
+#include "Colour.hpp"
 
 const float PI  = 3.141592f;
-GLuint loadComputeShader2(const char* file, GLuint type){
+GLuint loadComputeShader(const char* file, GLuint type){
 	GLuint shaderID = glCreateShader(type);
 	
 	std::string shaderSrc;
@@ -41,8 +42,8 @@ GLuint loadComputeShader2(const char* file, GLuint type){
 	return shaderID;
 }
 
-GLuint generateProgram2(const char* computeFile){
-	GLuint computeShaderID = loadComputeShader2(computeFile, GL_COMPUTE_SHADER);
+GLuint generateProgram(const char* computeFile){
+	GLuint computeShaderID = loadComputeShader(computeFile, GL_COMPUTE_SHADER);
 	
 	GLuint programID = glCreateProgram();
 	glAttachShader(programID, computeShaderID);
@@ -151,7 +152,7 @@ SimulationSimple::SimulationSimple(int N, float g, float hr, float hz, int seed)
 	glBufferData(GL_ARRAY_BUFFER, colorBufferData.size() * sizeof(glm::vec4), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, colorBufferData.size() * sizeof(glm::vec4), colorBufferData.data());
 	
-	computeProgram = generateProgram2("resources/shaders/particles_simple.compute");
+	computeProgram = generateProgram("resources/shaders/particles_simple.compute");
 	mID = glGetUniformLocation(computeProgram, "m");
 	gID = glGetUniformLocation(computeProgram, "g");
 	dtID = glGetUniformLocation(computeProgram, "dt");
