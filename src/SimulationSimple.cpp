@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <glm/glm.hpp>
+#include "Color.hpp"
 
 const float PI  = 3.141592f;
 GLuint loadComputeShader2(const char* file, GLuint type){
@@ -102,9 +103,8 @@ SimulationSimple::SimulationSimple(int N, float g, float hr, float hz, int seed)
 		x.y = pos.z;
 		x.z = pos.y;
 		glm::vec4& c = colorBufferData[i];
-		c.x = ((float) rand()) / RAND_MAX;
-		c.y = ((float) rand()) / RAND_MAX;
-		c.z = ((float) rand()) / RAND_MAX;
+		float T = 1000 + 10000 * (float) rand() / RAND_MAX;
+		c = getColor(T);
 	}
 	
 	glm::vec3 mmp = glm::vec3(0, 0, 0);
@@ -132,7 +132,7 @@ SimulationSimple::SimulationSimple(int N, float g, float hr, float hz, int seed)
 		float costheta = glm::dot(glm::vec3(x.x / r, x.y / r, x.z / r), glm::vec3(x.x / rproj, 0, x.z / rproj));
 		float vproj = vtot * costheta;
 		v.x = vproj * x.z / rproj;
-		v.y = -vtot * sqrt(std::max(0.0f, 1 - costheta * costheta));
+		v.y = ((x.y - mmp.y < 0) - (x.y - mmp.y > 0)) * vtot * sqrt(std::max(0.0f, 1 - costheta * costheta));
 		v.z = -vproj * x.x / rproj;
 	}
 	

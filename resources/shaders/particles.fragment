@@ -5,10 +5,17 @@ in float vMass;
 
 out vec4 color;
 
+const float pi = 3.141592f;
+
+float sinc2(float x){
+	if(x == 0) return 1;
+	else return sin(x) * sin(x) / (x * x);
+}
+
 void main(){
 	if(vMass <= 0) discard;
 	if (length(gl_PointCoord - 0.5) > 0.5) {
 		discard;
 	} else
-		color = vertexColor;
+		color = vec4(vertexColor.xyz, sinc2(2 * pi * length(gl_PointCoord - 0.5)));
 }

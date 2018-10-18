@@ -227,7 +227,7 @@ void SimulationSingle::update(float dt){
 	glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, vParticles.size() * sizeof(glm::vec4), vt);
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 	
-	for(int i = 0;i < N;i++){
+	//for(int i = 0;i < N;i++){
 		//glm::vec4 dx = xt[i] - x[i], dv = vt[i] - v[i];
 		//std::cout << "dx: " << dx.x << " " << dx.y << " " << dx.z << " " << std::endl;
 		//std::cout << "dv: " << dv.x << " " << dv.y << " " << dv.z << " " << std::endl;
@@ -236,7 +236,7 @@ void SimulationSingle::update(float dt){
 		//std::cout << "v: " << v[i].x << " " << v[i].y << " " << v[i].z << " " << v[i].w << std::endl;
 		//std::cout << "vt: " << vt[i].x << " " << vt[i].y << " " << vt[i].z << " " << vt[i].w << std::endl;
 		//std::cout << "w: " << x[i].w << " " << xt[i].w << " " << v[i].w << " " << vt[i].w << std::endl;
-	}
+	//}
 	//exit(0);
 	
 	glm::vec3 mmp = glm::vec3(0, 0, 0);

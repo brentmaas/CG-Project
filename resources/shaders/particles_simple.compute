@@ -24,10 +24,12 @@ void main(){
 	if(gid < N){
 		float d = length(x[gid]);
 		vec4 a = -g * m / (d * d * d) * x[gid];
-		if(length(a) * 0.5f < length(v[gid] + a * dt)){
+		if(length(a) * 0.1f < length(v[gid] + a * dt)){
 			xt[gid] = x[gid] + v[gid] * dt + a * dt * dt / 2;
 			vt[gid] = v[gid] + a * dt;
 		}else{
+			//xt[gid] = 2 * length(x[gid]) * normalize(x[gid] + v[gid] * dt);
+			//vt[gid] = 0.25 * length(v[gid]) * normalize(xt[gid] - x[gid]);
 			xt[gid] = length(x[gid]) * normalize(x[gid] + v[gid] * dt);
 			vt[gid] = length(v[gid]) * normalize(xt[gid] - x[gid]);
 		}
