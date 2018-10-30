@@ -39,7 +39,7 @@ GLuint loadComputeShader(const char* file, GLuint type){
 	return shaderID;
 }
 
-GLuint generateProgram(const char* computeFile){
+GLuint generateComputeProgram(const char* computeFile){
 	GLuint computeShaderID = loadComputeShader(computeFile, GL_COMPUTE_SHADER);
 	
 	GLuint programID = glCreateProgram();
@@ -142,7 +142,7 @@ Simulation::Simulation(int N, float g, float hr, float hz, int seed){
 	glBufferData(GL_ARRAY_BUFFER, colorBufferData.size() * sizeof(glm::vec4), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, colorBufferData.size() * sizeof(glm::vec4), colorBufferData.data());
 	
-	computeProgram = generateProgram("resources/shaders/particles.compute");
+	computeProgram = generateComputeProgram("resources/shaders/particles.compute");
 	
 	glGenBuffers(1, &velocityBuffer);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, velocityBuffer);
@@ -154,7 +154,7 @@ Simulation::Simulation(int N, float g, float hr, float hz, int seed){
 	glBufferData(GL_SHADER_STORAGE_BUFFER, mass.size() * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, mass.size() * sizeof(GLfloat), mass.data());
 	
-	compute2Program = generateProgram("resources/shaders/particles.compute2");
+	compute2Program = generateComputeProgram("resources/shaders/particles.compute2");
 	
 	glGenBuffers(1, &dForceBuffer);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, dForceBuffer);

@@ -4,10 +4,11 @@
 class Star{
 public:
 	Star();
-	Star(float m);
-private:
-	float m, R, age;
+	Star(float m, float R);
 	float T();
+	float getM();
+private:
+	float m, R, age; //m, R in solar units
 };
 
 #endif

@@ -7,11 +7,13 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "DistributionDisk.hpp"
+#include "Star.hpp"
 
 class SimulationSimple {
 public:
 	SimulationSimple();
 	SimulationSimple(int N, float g, float hr, float hz, int seed);
+	SimulationSimple(std::vector<Star>& stars, float g, float hr, float hz, int seed);
 	void update(float dt);
 	void draw();
 	~SimulationSimple();

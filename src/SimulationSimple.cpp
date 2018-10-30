@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 
 #include "Colour.hpp"
+#include "Star.hpp"
 
 const float PI  = 3.141592f;
 GLuint loadComputeShader(const char* file, GLuint type){
@@ -42,7 +43,7 @@ GLuint loadComputeShader(const char* file, GLuint type){
 	return shaderID;
 }
 
-GLuint generateProgram(const char* computeFile){
+GLuint generateComputeProgram(const char* computeFile){
 	GLuint computeShaderID = loadComputeShader(computeFile, GL_COMPUTE_SHADER);
 	
 	GLuint programID = glCreateProgram();
@@ -105,7 +106,7 @@ SimulationSimple::SimulationSimple(int N, float g, float hr, float hz, int seed)
 		x.z = pos.y;
 		glm::vec4& c = colorBufferData[i];
 		float T = 1000 + 10000 * (float) rand() / RAND_MAX;
-		c = getColor(T);
+		c = getColour(T);
 	}
 	
 	glm::vec3 mmp = glm::vec3(0, 0, 0);
@@ -152,7 +153,7 @@ SimulationSimple::SimulationSimple(int N, float g, float hr, float hz, int seed)
 	glBufferData(GL_ARRAY_BUFFER, colorBufferData.size() * sizeof(glm::vec4), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, colorBufferData.size() * sizeof(glm::vec4), colorBufferData.data());
 	
-	computeProgram = generateProgram("resources/shaders/particles_simple.compute");
+	computeProgram = generateComputeProgram("resources/shaders/particles_simple.compute");
 	mID = glGetUniformLocation(computeProgram, "m");
 	gID = glGetUniformLocation(computeProgram, "g");
 	dtID = glGetUniformLocation(computeProgram, "dt");
@@ -173,7 +174,7 @@ SimulationSimple::SimulationSimple(int N, float g, float hr, float hz, int seed)
 	glBufferData(GL_SHADER_STORAGE_BUFFER, mass.size() * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, mass.size() * sizeof(GLfloat), mass.data());
 	
-	glm::vec3 mmp2 = glm::vec3(0, 0, 0);
+	/*glm::vec3 mmp2 = glm::vec3(0, 0, 0);
 	float totmass2 = 0;
 	for(int i = 0;i < N;i++){
 		glm::vec4& x2 = xParticles[i];
@@ -193,7 +194,124 @@ SimulationSimple::SimulationSimple(int N, float g, float hr, float hz, int seed)
 		energy += mass[i] * vel2 / 2 - g * mass[i] * totmass2 / sqrt(r2);
 	}
 	
-	std::cout << "Starting energy: " << energy << std::endl;
+	std::cout << "Starting energy: " << energy << std::endl;*/
+	//exit(0);
+}
+
+SimulationSimple::SimulationSimple(std::vector<Star>& stars, float g, float hr, float hz, int seed){
+	N = stars.size();
+	this->g = g;
+	this->hr = hr;
+	this->hz = hz;
+	srand(seed);
+	dist = DistributionDisk(seed);
+	dist.setH(this->hr, this->hz);
+	xParticles = std::vector<glm::vec4>(N, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	vParticles = std::vector<glm::vec4>(N, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	colorBufferData = std::vector<glm::vec4>(N, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	mass = std::vector<float>(N, 5.0f);
+	for(int i = 0;i < N;i++){
+		colorBufferData[i] = getColour(stars[i].T());
+		mass[i] = stars[i].getM();
+	}
+	
+	for(int i = 0;i < N;i++){
+		glm::vec4 pos = dist.evalPos();
+		glm::vec4& x = xParticles[i];
+		x.x = pos.x;
+		x.y = pos.z;
+		x.z = pos.y;
+		glm::vec4& c = colorBufferData[i];
+		float T = 1000 + 10000 * (float) rand() / RAND_MAX;
+		c = getColour(T);
+	}
+	
+	glm::vec3 mmp = glm::vec3(0, 0, 0);
+	totmass = 0;
+	for(int i = 0;i < N;i++){
+		glm::vec4& x = xParticles[i];
+		float m = mass[i];
+		mmp += glm::vec3(m * x.x, m * x.y, m * x.z);
+		totmass += m;
+	}
+	mmp /= totmass;
+	for(int i = 0;i < N;i++){
+		glm::vec4& x = xParticles[i];
+		x.x -= mmp.x;
+		x.y -= mmp.y;
+		x.z -= mmp.z;
+		float r = sqrt(x.x * x.x + x.y * x.y + x.z * x.z);
+		glm::vec4& v = vParticles[i];
+		if(r <= 0){
+			v = glm::vec4(0, 0, 0, 0);
+			continue;
+		}
+		float vtot = sqrt(g * totmass / r);
+		float rproj = sqrt(x.x * x.x + x.z * x.z);
+		float costheta = glm::dot(glm::vec3(x.x / r, x.y / r, x.z / r), glm::vec3(x.x / rproj, 0, x.z / rproj));
+		float vproj = vtot * costheta;
+		v.x = vproj * x.z / rproj;
+		v.y = ((x.y - mmp.y < 0) - (x.y - mmp.y > 0)) * vtot * sqrt(std::max(0.0f, 1 - costheta * costheta));
+		v.z = -vproj * x.x / rproj;
+	}
+	
+	glGenBuffers(1, &vertexBuffer);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, vertexBuffer);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, xParticles.size() * sizeof(glm::vec4), NULL, GL_STATIC_DRAW);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, xParticles.size() * sizeof(glm::vec4), xParticles.data());
+	
+	glGenBuffers(1, &vertexTargetBuffer);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, vertexTargetBuffer);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, xParticles.size() * sizeof(glm::vec4), NULL, GL_STATIC_DRAW);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, xParticles.size() * sizeof(glm::vec4), xParticles.data());
+	
+	glGenBuffers(1, &colorBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
+	glBufferData(GL_ARRAY_BUFFER, colorBufferData.size() * sizeof(glm::vec4), NULL, GL_STATIC_DRAW);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, colorBufferData.size() * sizeof(glm::vec4), colorBufferData.data());
+	
+	computeProgram = generateComputeProgram("resources/shaders/particles_simple.compute");
+	mID = glGetUniformLocation(computeProgram, "m");
+	gID = glGetUniformLocation(computeProgram, "g");
+	dtID = glGetUniformLocation(computeProgram, "dt");
+	nID = glGetUniformLocation(computeProgram, "N");
+	
+	glGenBuffers(1, &velocityBuffer);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, velocityBuffer);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, vParticles.size() * sizeof(glm::vec4), NULL, GL_STATIC_DRAW);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, vParticles.size() * sizeof(glm::vec4), vParticles.data());
+	
+	glGenBuffers(1, &velocityTargetBuffer);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, velocityTargetBuffer);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, vParticles.size() * sizeof(glm::vec4), NULL, GL_STATIC_DRAW);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, vParticles.size() * sizeof(glm::vec4), vParticles.data());
+	
+	glGenBuffers(1, &massBuffer);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, massBuffer);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, mass.size() * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, mass.size() * sizeof(GLfloat), mass.data());
+	
+	/*glm::vec3 mmp2 = glm::vec3(0, 0, 0);
+	float totmass2 = 0;
+	for(int i = 0;i < N;i++){
+		glm::vec4& x2 = xParticles[i];
+		float m = mass[i];
+		mmp2 += glm::vec3(m * x2.x, m * x2.y, m * x2.z);
+		totmass2 += m;
+	}
+	mmp2 /= totmass2;
+	
+	float energy = 0;
+	for(int i = 0;i < N;i++){
+		glm::vec4& x2 = xParticles[i], v2 = vParticles[i];
+		//std::cout << "x: " << x2.x << " " << x2.y << " " << x2.z << " " << x2.w << std::endl;
+		//std::cout << "v: " << v2.x << " " << v2.y << " " << v2.z << " " << v2.w << std::endl;
+		float r2 = (x2.x - mmp2.x) * (x2.x - mmp2.x) + (x2.y - mmp2.y) * (x2.y - mmp2.y) + (x2.z - mmp2.z) * (x2.z - mmp2.z);
+		float vel2 = v2.x * v2.x + v2.y * v2.y + v2.z * v2.z;
+		energy += mass[i] * vel2 / 2 - g * mass[i] * totmass2 / sqrt(r2);
+	}
+	
+	std::cout << "Starting energy: " << energy << std::endl;*/
 	//exit(0);
 }
 
