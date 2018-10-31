@@ -1,8 +1,8 @@
 #version 430 core
 
 in vec4 vertexColor;
-//in float vMass;
 in float r;
+flat in ivec4 sStage;
 
 out vec4 color;
 
@@ -14,7 +14,7 @@ float sinc2(float x){
 }
 
 void main(){
-	//if(vMass <= 0) discard;
+	if(sStage.x == 0 && sStage.y == 0 && sStage.z == 0 && sStage.w == 0) discard;
 	if(r <= 0) discard;
 	if (length(gl_PointCoord - 0.5) > 0.5) {
 		discard;

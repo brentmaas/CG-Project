@@ -15,6 +15,8 @@ public:
 	SimulationSimple(std::vector<Star>& stars, float g, float hr, float hz, int seed);
 	void update(float dt);
 	void draw();
+	void updateRadiusBuffer(std::vector<Star>& stars);
+	void updateStageBuffer(std::vector<Star>& stars);
 	~SimulationSimple();
 private:
 	int N;
@@ -22,7 +24,7 @@ private:
 	std::vector<glm::vec4> xParticles, vParticles, colorBufferData;
 	std::vector<float> mass;
 	GLuint nID, mID, gID, dtID;
-	GLuint velocityBuffer, velocityTargetBuffer, massBuffer, radiusBuffer, vertexBuffer, vertexTargetBuffer, colorBuffer, computeProgram;
+	GLuint velocityBuffer, velocityTargetBuffer, massBuffer, radiusBuffer, vertexBuffer, vertexTargetBuffer, colorBuffer, stageBuffer, computeProgram;
 	DistributionDisk dist;
 };
 

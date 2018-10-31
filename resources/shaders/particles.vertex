@@ -2,20 +2,19 @@
 
 layout(location = 0) in vec4 vertexPosition;
 layout(location = 1) in vec4 color;
-//layout(location = 2) in float mass;
 layout(location = 2) in float radius;
+layout(location = 3) in ivec4 stage;
 
 uniform mat4 MVP;
 
 out vec4 vertexColor;
-//out float vMass;
 out float r;
+out ivec4 sStage;
 
 void main(){
 	gl_Position = MVP * vec4(vertexPosition.xyz, 1);
 	vertexColor = color;
-	//gl_PointSize = mass;
-	//vMass = mass;
 	gl_PointSize = radius;
 	r = radius;
+	sStage = stage;
 }

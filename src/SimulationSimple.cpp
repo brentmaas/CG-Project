@@ -130,6 +130,12 @@ SimulationSimple::SimulationSimple(int N, float g, float hr, float hz, int seed)
 	glBufferData(GL_ARRAY_BUFFER, colorBufferData.size() * sizeof(glm::vec4), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, colorBufferData.size() * sizeof(glm::vec4), colorBufferData.data());
 	
+	std::vector<glm::ivec4> stageBufferData(N, glm::ivec4(0));
+	glGenBuffers(1, &stageBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, stageBuffer);
+	glBufferData(GL_ARRAY_BUFFER, stageBufferData.size() * sizeof(glm::ivec4), NULL, GL_DYNAMIC_DRAW);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, stageBufferData.size() * sizeof(glm::ivec4), stageBufferData.data());
+	
 	computeProgram = generateComputeProgram("resources/shaders/particles_simple.compute");
 	mID = glGetUniformLocation(computeProgram, "m");
 	gID = glGetUniformLocation(computeProgram, "g");
@@ -250,6 +256,13 @@ SimulationSimple::SimulationSimple(std::vector<Star>& stars, float g, float hr, 
 	glBufferData(GL_ARRAY_BUFFER, colorBufferData.size() * sizeof(glm::vec4), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, colorBufferData.size() * sizeof(glm::vec4), colorBufferData.data());
 	
+	std::vector<glm::ivec4> stageBufferData(N, glm::ivec4(0));
+	//std::cout << stageBufferData[0].x << " " << stageBufferData[0].y << " " << stageBufferData[0].z << " " << stageBufferData[0].w << std::endl;
+	glGenBuffers(1, &stageBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, stageBuffer);
+	glBufferData(GL_ARRAY_BUFFER, stageBufferData.size() * sizeof(glm::ivec4), NULL, GL_DYNAMIC_DRAW);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, stageBufferData.size() * sizeof(glm::ivec4), stageBufferData.data());
+	
 	computeProgram = generateComputeProgram("resources/shaders/particles_simple.compute");
 	mID = glGetUniformLocation(computeProgram, "m");
 	gID = glGetUniformLocation(computeProgram, "g");
@@ -357,16 +370,35 @@ void SimulationSimple::draw(){
 	glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (void*) 0);
 	glEnableVertexAttribArray(2);
-	//glBindBuffer(GL_ARRAY_BUFFER, massBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, radiusBuffer);
 	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 0, (void*) 0);
+	glBindBuffer(GL_ARRAY_BUFFER, stageBuffer);
+	glVertexAttribPointer(3, 4, GL_INT, GL_FALSE, 0, (void*) 0);
 	glDrawArrays(GL_POINTS, 0, N);
+	glDisableVertexAttribArray(3);
+	glDisableVertexAttribArray(2);
 	glDisableVertexAttribArray(1);
 	glDisableVertexAttribArray(0);
 }
 
+void SimulationSimple::updateRadiusBuffer(std::vector<Star>& stars){
+	std::vector<float> radii = std::vector<float>(N);
+	for(int i = 0;i < N;i++) radii[i] = stars[i].getR();
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, radiusBuffer);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, radii.size() * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, radii.size() * sizeof(GLfloat), radii.data());
+}
+
+void SimulationSimple::updateStageBuffer(std::vector<Star>& stars){
+	std::vector<glm::ivec4> stageBufferData(N, glm::ivec4(0));
+	for(int i = 0;i < N;i++) stageBufferData[i] = glm::ivec4(stars[i].getStage());
+	//std::cout << stageBufferData[0].x << " " << stageBufferData[0].y << " " << stageBufferData[0].z << " " << stageBufferData[0].w << std::endl;
+	glBindBuffer(GL_ARRAY_BUFFER, stageBuffer);
+	glBufferData(GL_ARRAY_BUFFER, stageBufferData.size() * sizeof(glm::ivec4), NULL, GL_DYNAMIC_DRAW);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, stageBufferData.size() * sizeof(glm::ivec4), stageBufferData.data());
+}
+
 SimulationSimple::~SimulationSimple(){
-	//GLuint velocityBuffer, velocityTargetBuffer, massBuffer, vertexBuffer, vertexTargetBuffer, colorBuffer, computeProgram;
 	glDeleteBuffers(1, &velocityBuffer);
 	glDeleteBuffers(1, &velocityTargetBuffer);
 	glDeleteBuffers(1, &massBuffer);
@@ -374,5 +406,6 @@ SimulationSimple::~SimulationSimple(){
 	glDeleteBuffers(1, &vertexBuffer);
 	glDeleteBuffers(1, &vertexTargetBuffer);
 	glDeleteBuffers(1, &colorBuffer);
+	glDeleteBuffers(1, &stageBuffer);
 	glDeleteProgram(computeProgram);
 }
