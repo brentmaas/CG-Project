@@ -17,19 +17,14 @@ void Star::setMR(float m, float R){
 	this->R = pow(m / rhoC, 1.0f / 3.0f);
 	R0 = R;
 	age = 0;
-	tC = sqrt(R0*R0 / (acc * g * m) * (R0 - pow(m / rhoC, 1.0f / 3.0f)));
-	//std::cout << this->R << " " << tC << std::endl;
+	//tC = sqrt(R0*R0 / (acc * g * m) * (R0 - pow(m / rhoC, 1.0f / 3.0f)));
+	tC = sqrt(R0 / g / m);
 }
 
 void Star::update(float dt){
 	age += dt;
-	if(stage == 0){
-		//std::cout << age << " " << tC << std::endl;
-		if(age > tC){
-			std::cout << "aaa" << std::endl;
-			stage++;
-		}
-	}
+	if(stage == 0 && age > tC) stage++;
+	if(stage == 1 && age > tC + 1) stage++;
 }
 
 //en.wikipedia.org/wiki/Mass%E2%80%93luminosity_relation
@@ -39,6 +34,7 @@ float Star::L(){
 	else if(m < 2) L = pow(m, 4);
 	else if(m < 20) L = 1.4 * pow(m, 3.5);
 	else L = 32000 * m;
+	if(stage == 1) L *= age - tC;
 	return L;
 }
 

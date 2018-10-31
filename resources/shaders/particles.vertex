@@ -9,12 +9,12 @@ uniform mat4 MVP;
 
 out vec4 vertexColor;
 out float r;
-out ivec4 sStage;
+flat out ivec4 sStage;
 
 void main(){
 	gl_Position = MVP * vec4(vertexPosition.xyz, 1);
 	vertexColor = color;
-	gl_PointSize = radius;
+	gl_PointSize = sqrt(sqrt(radius));
 	r = radius;
 	sStage = stage;
 }

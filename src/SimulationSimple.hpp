@@ -16,6 +16,7 @@ public:
 	void update(float dt);
 	void draw();
 	void updateRadiusBuffer(std::vector<Star>& stars);
+	void updateLuminosityBuffer(std::vector<Star>& stars);
 	void updateStageBuffer(std::vector<Star>& stars);
 	~SimulationSimple();
 private:
@@ -24,7 +25,7 @@ private:
 	std::vector<glm::vec4> xParticles, vParticles, colorBufferData;
 	std::vector<float> mass;
 	GLuint nID, mID, gID, dtID;
-	GLuint velocityBuffer, velocityTargetBuffer, massBuffer, radiusBuffer, vertexBuffer, vertexTargetBuffer, colorBuffer, stageBuffer, computeProgram;
+	GLuint velocityBuffer, velocityTargetBuffer, massBuffer, radiusBuffer, luminosityBuffer, vertexBuffer, vertexTargetBuffer, colorBuffer, stageBuffer, computeProgram;
 	DistributionDisk dist;
 };
 

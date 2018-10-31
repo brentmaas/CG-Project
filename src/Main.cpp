@@ -14,7 +14,7 @@
 
 const std::string title = "CG Project Brent Maas";
 const float PI = 3.14159265359f;
-const int width = 1200, height = 800;
+const int width = 1000, height = 600;
 const float targetFPS = 60.0f;
 
 GLuint loadShader(const char* file, GLuint type){
@@ -83,7 +83,7 @@ int main(int argc, char **argv){
 		return 1;
 	}
 	
-	glfwWindowHint(GLFW_SAMPLES, 4);
+	glfwWindowHint(GLFW_SAMPLES, 8);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -121,7 +121,7 @@ int main(int argc, char **argv){
 	GLuint particlesMatrixID = glGetUniformLocation(programParticles, "MVP");
 	glUniformMatrix4fv(particlesMatrixID, 1, GL_FALSE, &mvp[0][0]);
 	
-	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_PROGRAM_POINT_SIZE_EXT);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -162,7 +162,8 @@ int main(int argc, char **argv){
 		
 		glfwSetWindowTitle(window, (title + " - " + std::to_string((int) (1.0f / dt)) + " fps").c_str());
 		
-		galaxy.update(dt / 10.0f);
+		//galaxy.update(dt / 10.0f);
+		galaxy.update(0.00025f);
 		glUseProgram(programParticles);
 		
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
