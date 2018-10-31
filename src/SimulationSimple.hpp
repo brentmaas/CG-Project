@@ -11,7 +11,6 @@
 
 class SimulationSimple {
 public:
-	SimulationSimple();
 	SimulationSimple(int N, float g, float hr, float hz, int seed);
 	SimulationSimple(std::vector<Star>& stars, float g, float hr, float hz, int seed);
 	void update(float dt);
@@ -23,7 +22,7 @@ private:
 	std::vector<glm::vec4> xParticles, vParticles, colorBufferData;
 	std::vector<float> mass;
 	GLuint nID, mID, gID, dtID;
-	GLuint velocityBuffer, velocityTargetBuffer, massBuffer, vertexBuffer, vertexTargetBuffer, colorBuffer, computeProgram;
+	GLuint velocityBuffer, velocityTargetBuffer, massBuffer, radiusBuffer, vertexBuffer, vertexTargetBuffer, colorBuffer, computeProgram;
 	DistributionDisk dist;
 };
 

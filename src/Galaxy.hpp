@@ -9,12 +9,13 @@
 
 class Galaxy{
 public:
-	Galaxy();
 	Galaxy(int N, float g, float hr, float hz, int seed);
-	SimulationSimple sim;
+	void update(float dt);
+	void draw();
 private:
-	std::vector<Star> stars;
 	int N;
+	std::vector<Star> stars;
+	SimulationSimple sim;
 };
 
 #endif

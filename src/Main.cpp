@@ -9,12 +9,12 @@
 #include <chrono>
 #include <thread>
 
-#include "SimulationSimple.hpp"
-//#include "Galaxy.hpp"
+//#include "SimulationSimple.hpp"
+#include "Galaxy.hpp"
 
 const std::string title = "CG Project Brent Maas";
 const float PI = 3.14159265359f;
-const int width = 1000, height = 600;
+const int width = 1200, height = 800;
 const float targetFPS = 60.0f;
 
 GLuint loadShader(const char* file, GLuint type){
@@ -152,8 +152,7 @@ int main(int argc, char **argv){
 	
 	auto now = std::chrono::high_resolution_clock::now();
 	
-	SimulationSimple sim(50000, 1.0f, 50.0f, 10.0f, std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
-	//Galaxy galaxy(50000, 1.0f, 50.0f, 10.0f, std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
+	Galaxy galaxy(50000, 1.0f, 50.0f, 10.0f, std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
 	
 	while(!glfwWindowShouldClose(window)){
 		auto now2 = std::chrono::high_resolution_clock::now();
@@ -161,11 +160,9 @@ int main(int argc, char **argv){
 		float dt = d.count();
 		now = now2;
 		
-		//std::cout << 1.0f / dt << std::endl;
 		glfwSetWindowTitle(window, (title + " - " + std::to_string((int) (1.0f / dt)) + " fps").c_str());
 		
-		sim.update(dt / 10.0f);
-		//galaxy.sim.update(dt / 10.0f);
+		galaxy.update(dt / 10.0f);
 		glUseProgram(programParticles);
 		
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -212,8 +209,7 @@ int main(int argc, char **argv){
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(0);*/
-		sim.draw();
-		//galaxy.sim.draw();
+		galaxy.draw();
 		
 		glfwSwapBuffers(window);
 		glfwPollEvents();

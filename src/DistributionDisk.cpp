@@ -5,20 +5,9 @@
 
 const float PI = 3.141592f;
 
-DistributionDisk::DistributionDisk(){
-	dre = std::default_random_engine();
-	dre.seed(time(0));
-	dist = std::uniform_real_distribution<float>(0, 1);
-	hr = 1;
-	hz = 1;
-}
-
-DistributionDisk::DistributionDisk(int seed){
-	dre = std::default_random_engine();
+DistributionDisk::DistributionDisk(int seed):
+	hr(1), hz(1), dre(std::default_random_engine()), dist(std::uniform_real_distribution<float>(0, 1)){
 	dre.seed(seed);
-	dist = std::uniform_real_distribution<float>(0, 1);
-	hr = 1;
-	hz = 1;
 }
 
 void DistributionDisk::setH(float hr, float hz){
@@ -32,7 +21,6 @@ glm::vec4 DistributionDisk::evalPos(){
 	float dz = dist(dre);
 	float phi = 2 * PI * dist(dre);
 	float r = -hr * log(1 - dr);
-	//float r = -hr * log((1 - dr) * 0.5f);
 	res.x = r * cos(phi);
 	res.y = r * sin(phi);
 	if(dz <= 0.5f) res.z = -hz * log(1 - 2 * dz);

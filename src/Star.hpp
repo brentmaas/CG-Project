@@ -3,12 +3,15 @@
 
 class Star{
 public:
-	Star();
 	Star(float m, float R);
+	void setMR(float m, float R);
+	void update(float dt);
+	float L();
 	float T();
 	float getM();
+	float getR();
 private:
-	float m, R, age; //m, R in solar units
+	float m, R, R0, age; //m, R in solar units
 };
 
 #endif

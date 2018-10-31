@@ -66,32 +66,9 @@ GLuint generateComputeProgram(const char* computeFile){
 	return programID;
 }
 
-SimulationSimple::SimulationSimple(){
-	N = 0;
-	g = 1;
-	hr = 1;
-	hz = 1;
-	totmass = 0;
-	nID = 0;
-	mID = 0;
-	gID = 0;
-	dtID = 0;
-	vertexBuffer = 0;
-	vertexTargetBuffer = 0;
-	colorBuffer = 0;
-	massBuffer = 0;
-	velocityBuffer = 0;
-	velocityTargetBuffer = 0;
-	computeProgram = 0;
-}
-
-SimulationSimple::SimulationSimple(int N, float g, float hr, float hz, int seed){
-	this->N = N;
-	this->g = g;
-	this->hr = hr;
-	this->hz = hz;
+SimulationSimple::SimulationSimple(int N, float g, float hr, float hz, int seed):
+	N(N), g(g), hr(hr), hz(hz), dist(seed){
 	srand(seed);
-	dist = DistributionDisk(seed);
 	dist.setH(this->hr, this->hz);
 	xParticles = std::vector<glm::vec4>(N, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	vParticles = std::vector<glm::vec4>(N, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
@@ -174,6 +151,13 @@ SimulationSimple::SimulationSimple(int N, float g, float hr, float hz, int seed)
 	glBufferData(GL_SHADER_STORAGE_BUFFER, mass.size() * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, mass.size() * sizeof(GLfloat), mass.data());
 	
+	std::vector<float> radii(N);
+	for(int i = 0;i < N;i++) radii[i] = 5 * pow(mass[i], 1.0f / 3.0f);
+	glGenBuffers(1, &radiusBuffer);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, radiusBuffer);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, radii.size() * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, radii.size() * sizeof(GLfloat), radii.data());
+	
 	/*glm::vec3 mmp2 = glm::vec3(0, 0, 0);
 	float totmass2 = 0;
 	for(int i = 0;i < N;i++){
@@ -198,18 +182,14 @@ SimulationSimple::SimulationSimple(int N, float g, float hr, float hz, int seed)
 	//exit(0);
 }
 
-SimulationSimple::SimulationSimple(std::vector<Star>& stars, float g, float hr, float hz, int seed){
-	N = stars.size();
-	this->g = g;
-	this->hr = hr;
-	this->hz = hz;
+SimulationSimple::SimulationSimple(std::vector<Star>& stars, float g, float hr, float hz, int seed):
+	N(stars.size()), g(g), hr(hr), hz(hz), dist(seed){
 	srand(seed);
-	dist = DistributionDisk(seed);
 	dist.setH(this->hr, this->hz);
 	xParticles = std::vector<glm::vec4>(N, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	vParticles = std::vector<glm::vec4>(N, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 	colorBufferData = std::vector<glm::vec4>(N, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	mass = std::vector<float>(N, 5.0f);
+	mass = std::vector<float>(N, 1.0f);
 	for(int i = 0;i < N;i++){
 		colorBufferData[i] = getColour(stars[i].T());
 		mass[i] = stars[i].getM();
@@ -291,6 +271,13 @@ SimulationSimple::SimulationSimple(std::vector<Star>& stars, float g, float hr, 
 	glBufferData(GL_SHADER_STORAGE_BUFFER, mass.size() * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, mass.size() * sizeof(GLfloat), mass.data());
 	
+	std::vector<float> radii = std::vector<float>(N);
+	for(int i = 0;i < N;i++) radii[i] = stars[i].getR();
+	glGenBuffers(1, &radiusBuffer);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, radiusBuffer);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, radii.size() * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, radii.size() * sizeof(GLfloat), radii.data());
+	
 	/*glm::vec3 mmp2 = glm::vec3(0, 0, 0);
 	float totmass2 = 0;
 	for(int i = 0;i < N;i++){
@@ -370,7 +357,8 @@ void SimulationSimple::draw(){
 	glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (void*) 0);
 	glEnableVertexAttribArray(2);
-	glBindBuffer(GL_ARRAY_BUFFER, massBuffer);
+	//glBindBuffer(GL_ARRAY_BUFFER, massBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, radiusBuffer);
 	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 0, (void*) 0);
 	glDrawArrays(GL_POINTS, 0, N);
 	glDisableVertexAttribArray(1);
@@ -378,6 +366,13 @@ void SimulationSimple::draw(){
 }
 
 SimulationSimple::~SimulationSimple(){
+	//GLuint velocityBuffer, velocityTargetBuffer, massBuffer, vertexBuffer, vertexTargetBuffer, colorBuffer, computeProgram;
+	glDeleteBuffers(1, &velocityBuffer);
+	glDeleteBuffers(1, &velocityTargetBuffer);
+	glDeleteBuffers(1, &massBuffer);
+	glDeleteBuffers(1, &radiusBuffer);
 	glDeleteBuffers(1, &vertexBuffer);
+	glDeleteBuffers(1, &vertexTargetBuffer);
 	glDeleteBuffers(1, &colorBuffer);
+	glDeleteProgram(computeProgram);
 }
