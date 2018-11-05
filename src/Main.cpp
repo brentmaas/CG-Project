@@ -14,7 +14,7 @@
 
 const std::string title = "CG Project Brent Maas";
 const float PI = 3.14159265359f;
-const int width = 1000, height = 600;
+const int width = 1200, height = 800;
 const float targetFPS = 60.0f;
 
 GLuint loadShader(const char* file, GLuint type){
@@ -126,7 +126,7 @@ int main(int argc, char **argv){
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.05f, 0.05f, 0.1f, 1.0f);
 	
 	GLuint vertexArray/*, vertexBuffer, colorBuffer, positionBuffer*/;
 	glGenVertexArrays(1, &vertexArray);

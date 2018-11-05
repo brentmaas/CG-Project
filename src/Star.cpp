@@ -42,12 +42,20 @@ float Star::T(){
 	return T_SUN * pow(L() / (R * R), 0.25);
 }
 
+void Star::addAge(float dage){
+	age += dage;
+}
+
 float Star::getM(){
 	return m;
 }
 
 float Star::getR(){
 	return R;
+}
+
+float Star::getTC(){
+	return tC;
 }
 
 int Star::getStage(){

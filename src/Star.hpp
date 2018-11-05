@@ -10,8 +10,10 @@ public:
 	void update(float dt);
 	float L();
 	float T();
+	void addAge(float dage);
 	float getM();
 	float getR();
+	float getTC();
 	int getStage();
 private:
 	float m, R, R0, age, tC, g; //m, R in solar units

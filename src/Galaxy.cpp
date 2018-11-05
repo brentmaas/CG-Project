@@ -15,6 +15,9 @@ std::vector<Star> generateStars(int N, int seed, float g){
 		stars[i].setMR(m, 5 * pow(m, 1.0f / 3.0f));
 		//stars[i].setMR(m, r0);
 	}
+	float minAge = stars[0].getTC();
+	for(int i = 1;i < N;i++) if(stars[i].getTC() < minAge) minAge = stars[i].getTC();
+	for(int i = 0;i < N;i++) stars[i].addAge(minAge - 0.1f);
 	return stars;
 }
 
