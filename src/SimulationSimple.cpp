@@ -170,29 +170,6 @@ SimulationSimple::SimulationSimple(int N, float g, float hr, float hz, int seed)
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, luminosityBuffer);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, lums.size() * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, lums.size() * sizeof(GLfloat), lums.data());
-	
-	/*glm::vec3 mmp2 = glm::vec3(0, 0, 0);
-	float totmass2 = 0;
-	for(int i = 0;i < N;i++){
-		glm::vec4& x2 = xParticles[i];
-		float m = mass[i];
-		mmp2 += glm::vec3(m * x2.x, m * x2.y, m * x2.z);
-		totmass2 += m;
-	}
-	mmp2 /= totmass2;
-	
-	float energy = 0;
-	for(int i = 0;i < N;i++){
-		glm::vec4& x2 = xParticles[i], v2 = vParticles[i];
-		//std::cout << "x: " << x2.x << " " << x2.y << " " << x2.z << " " << x2.w << std::endl;
-		//std::cout << "v: " << v2.x << " " << v2.y << " " << v2.z << " " << v2.w << std::endl;
-		float r2 = (x2.x - mmp2.x) * (x2.x - mmp2.x) + (x2.y - mmp2.y) * (x2.y - mmp2.y) + (x2.z - mmp2.z) * (x2.z - mmp2.z);
-		float vel2 = v2.x * v2.x + v2.y * v2.y + v2.z * v2.z;
-		energy += mass[i] * vel2 / 2 - g * mass[i] * totmass2 / sqrt(r2);
-	}
-	
-	std::cout << "Starting energy: " << energy << std::endl;*/
-	//exit(0);
 }
 
 SimulationSimple::SimulationSimple(std::vector<Star>& stars, float g, float hr, float hz, int seed):
@@ -304,29 +281,6 @@ SimulationSimple::SimulationSimple(std::vector<Star>& stars, float g, float hr, 
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, luminosityBuffer);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, lums.size() * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, lums.size() * sizeof(GLfloat), lums.data());
-	
-	/*glm::vec3 mmp2 = glm::vec3(0, 0, 0);
-	float totmass2 = 0;
-	for(int i = 0;i < N;i++){
-		glm::vec4& x2 = xParticles[i];
-		float m = mass[i];
-		mmp2 += glm::vec3(m * x2.x, m * x2.y, m * x2.z);
-		totmass2 += m;
-	}
-	mmp2 /= totmass2;
-	
-	float energy = 0;
-	for(int i = 0;i < N;i++){
-		glm::vec4& x2 = xParticles[i], v2 = vParticles[i];
-		//std::cout << "x: " << x2.x << " " << x2.y << " " << x2.z << " " << x2.w << std::endl;
-		//std::cout << "v: " << v2.x << " " << v2.y << " " << v2.z << " " << v2.w << std::endl;
-		float r2 = (x2.x - mmp2.x) * (x2.x - mmp2.x) + (x2.y - mmp2.y) * (x2.y - mmp2.y) + (x2.z - mmp2.z) * (x2.z - mmp2.z);
-		float vel2 = v2.x * v2.x + v2.y * v2.y + v2.z * v2.z;
-		energy += mass[i] * vel2 / 2 - g * mass[i] * totmass2 / sqrt(r2);
-	}
-	
-	std::cout << "Starting energy: " << energy << std::endl;*/
-	//exit(0);
 }
 
 void SimulationSimple::update(float dt){
@@ -346,34 +300,6 @@ void SimulationSimple::update(float dt){
 	
 	std::swap(vertexBuffer, vertexTargetBuffer);
 	std::swap(velocityBuffer, velocityTargetBuffer);
-	
-	//Energy check
-	/*glm::vec4 x[N], v[N];
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, vertexBuffer);
-	glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, xParticles.size() * sizeof(glm::vec4), x);
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, velocityBuffer);
-	glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, vParticles.size() * sizeof(glm::vec4), v);
-	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-	
-	glm::vec3 mmp2 = glm::vec3(0, 0, 0);
-	float totmass2 = 0;
-	for(int i = 0;i < N;i++){
-		glm::vec4& x2 = x[i];
-		float m = mass[i];
-		mmp2 += glm::vec3(m * x2.x, m * x2.y, m * x2.z);
-		totmass2 += m;
-	}
-	mmp2 /= totmass2;
-	
-	float energy = 0;
-	for(int i = 0;i < N;i++){
-		glm::vec4& x2 = x[i], v2 = v[i];
-		float r2 = (x2.x - mmp2.x) * (x2.x - mmp2.x) + (x2.y - mmp2.y) * (x2.y - mmp2.y) + (x2.z - mmp2.z) * (x2.z - mmp2.z);
-		float vel2 = v2.x * v2.x + v2.y * v2.y + v2.z * v2.z;
-		energy += mass[i] * vel2 / 2 - g * mass[i] * totmass2 / sqrt(r2);
-	}
-	
-	std::cout << energy << std::endl;*/
 }
 
 void SimulationSimple::draw(){
@@ -415,7 +341,6 @@ void SimulationSimple::updateLuminosityBuffer(std::vector<Star>& stars){
 void SimulationSimple::updateStageBuffer(std::vector<Star>& stars){
 	std::vector<glm::ivec4> stageBufferData(N, glm::ivec4(0));
 	for(int i = 0;i < N;i++) stageBufferData[i] = glm::ivec4(stars[i].getStage());
-	//std::cout << stageBufferData[0].x << " " << stageBufferData[0].y << " " << stageBufferData[0].z << " " << stageBufferData[0].w << std::endl;
 	glBindBuffer(GL_ARRAY_BUFFER, stageBuffer);
 	//glBufferData(GL_ARRAY_BUFFER, stageBufferData.size() * sizeof(glm::ivec4), NULL, GL_DYNAMIC_DRAW);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, stageBufferData.size() * sizeof(glm::ivec4), stageBufferData.data());
