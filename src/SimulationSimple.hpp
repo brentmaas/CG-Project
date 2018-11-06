@@ -26,6 +26,7 @@ private:
 	std::vector<float> mass;
 	GLuint nID, mID, gID, dtID;
 	GLuint velocityBuffer, velocityTargetBuffer, massBuffer, radiusBuffer, luminosityBuffer, vertexBuffer, vertexTargetBuffer, colorBuffer, stageBuffer, computeProgram;
+	//GLuint cloudVertexBuffer, cloudColourBuffer, cloudLuminosityBuffer, cloudStageBuffer;
 	DistributionDisk dist;
 };
 

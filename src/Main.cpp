@@ -126,7 +126,8 @@ int main(int argc, char **argv){
 	glGenVertexArrays(1, &vertexArray);
 	glBindVertexArray(vertexArray);
 	
-	float ang = 0, ang2 = PI / 2;
+	float phi = 0, theta = PI / 2;
+	bool play = true, spaceBlock = false;
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 	
 	auto now = std::chrono::high_resolution_clock::now();
@@ -139,21 +140,26 @@ int main(int argc, char **argv){
 		float dt = d.count();
 		now = now2;
 		
-		glfwSetWindowTitle(window, (title + " - " + std::to_string((int) (1.0f / dt)) + " fps").c_str());
+		glfwSetWindowTitle(window, (title + " - " + std::to_string((int) (1.0f / dt)) + " fps" + (play ? "" : " - Paused")).c_str());
 		
 		//galaxy.update(dt / 10.0f);
-		galaxy.update(0.00025f);
+		if(play) galaxy.update(0.00025f);
 		glUseProgram(programParticles);
 		
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) ang += 0.5f * dt;
-		if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) ang -= 0.5f * dt;
-		if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) ang2 -= 0.5f * dt;
-		if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) ang2 += 0.5f * dt;
-		if(ang2 > PI / 2) ang2 = PI / 2;
-		if(ang2 < -PI / 2) ang2 = -PI / 2;
-		glm::mat4 mat = mvp * glm::rotate(glm::mat4(1.0f), ang2, glm::vec3(1, 0, 0)) * glm::rotate(glm::mat4(1.0f), ang, glm::vec3(0, 1, 0));
+		if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) phi += 0.5f * dt;
+		if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) phi -= 0.5f * dt;
+		if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) theta -= 0.5f * dt;
+		if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) theta += 0.5f * dt;
+		if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && !spaceBlock){
+			play = !play;
+			spaceBlock = true;
+		}
+		if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE) spaceBlock = false;
+		if(theta > PI / 2) theta = PI / 2;
+		if(theta < -PI / 2) theta = -PI / 2;
+		glm::mat4 mat = mvp * glm::rotate(glm::mat4(1.0f), theta, glm::vec3(1, 0, 0)) * glm::rotate(glm::mat4(1.0f), phi, glm::vec3(0, 1, 0));
 		
 		glUniformMatrix4fv(particlesMatrixID, 1, GL_FALSE, &mat[0][0]);
 		

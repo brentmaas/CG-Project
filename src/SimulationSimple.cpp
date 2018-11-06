@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <glm/glm.hpp>
+#include <algorithm>
 
 #include "Colour.hpp"
 #include "Star.hpp"
@@ -321,6 +322,8 @@ void SimulationSimple::draw(){
 	glDisableVertexAttribArray(2);
 	glDisableVertexAttribArray(1);
 	glDisableVertexAttribArray(0);
+	
+	//Cloud drawing
 }
 
 void SimulationSimple::updateRadiusBuffer(std::vector<Star>& stars){
