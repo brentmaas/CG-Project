@@ -11,8 +11,7 @@
 
 class SimulationSimple {
 public:
-	SimulationSimple(int N, int NCloud, float g, float hr, float hz, int seed);
-	SimulationSimple(std::vector<Star>& stars, int NCloud, float g, float hr, float hz, int seed);
+	SimulationSimple(std::vector<Star>& stars, int NCloud, float g, float hr, float hz, int seed, GLuint programID);
 	void update(float dt);
 	void draw();
 	void updateRadiusBuffer(std::vector<Star>& stars);
@@ -26,6 +25,7 @@ private:
 	std::vector<float> mass;
 	GLuint nID, mID, gID, dtID;
 	GLuint velocityBuffer, velocityTargetBuffer, massBuffer, radiusBuffer, luminosityBuffer, vertexBuffer, vertexTargetBuffer, colorBuffer, stageBuffer, isCloudBuffer, computeProgram;
+	GLuint cloudTextureID, cloudTextureSamplerID;
 	DistributionDisk dist;
 };
 

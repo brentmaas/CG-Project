@@ -16,9 +16,7 @@ flat out ivec4 cloud;
 void main(){
 	gl_Position = MVP * vec4(vertexPosition.xyz, 1);
 	vertexColor = color;
-	if(isCloud.x == 0){
-		gl_PointSize = sqrt(sqrt(radius));
-	}
+	gl_PointSize = sqrt(sqrt(radius));
 	r = radius;
 	sStage = stage;
 	cloud = isCloud;

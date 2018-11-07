@@ -7,6 +7,8 @@ flat in ivec4 cloud;
 
 out vec4 color;
 
+uniform sampler2D texSampler;
+
 const float pi = 3.141592f;
 
 float sinc2(float x){
@@ -15,8 +17,8 @@ float sinc2(float x){
 }
 
 void main(){
-	if(cloud.x == 1){
-		color = vec4(1, 1, 1, 1);
+	if(cloud.x != 0){
+		color = texture(texSampler, gl_PointCoord.xy);
 	}else{
 		if(sStage.x == 0 && sStage.y == 0 && sStage.z == 0 && sStage.w == 0) discard;
 		if(r <= 0) discard;

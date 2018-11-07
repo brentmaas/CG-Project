@@ -21,8 +21,8 @@ std::vector<Star> generateStars(int N, int seed, float g){
 	return stars;
 }
 
-Galaxy::Galaxy(int N, int NCloud, float g, float hr, float hz, int seed):
-	N(N), NCloud(NCloud), stars(generateStars(N, seed, g)), sim(stars, NCloud, g, hr, hz, seed){
+Galaxy::Galaxy(int N, int NCloud, float g, float hr, float hz, int seed, GLuint programID):
+	N(N), NCloud(NCloud), stars(generateStars(N, seed, g)), sim(stars, NCloud, g, hr, hz, seed, programID){
 	
 }
 

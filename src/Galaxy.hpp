@@ -9,7 +9,7 @@
 
 class Galaxy{
 public:
-	Galaxy(int N, int NCloud, float g, float hr, float hz, int seed);
+	Galaxy(int N, int NCloud, float g, float hr, float hz, int seed, GLuint programID);
 	void update(float dt);
 	void draw();
 private:
