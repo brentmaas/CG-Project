@@ -132,7 +132,7 @@ int main(int argc, char **argv){
 	
 	auto now = std::chrono::high_resolution_clock::now();
 	
-	Galaxy galaxy(50000, 1.0f, 50.0f, 10.0f, std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
+	Galaxy galaxy(50000, 1000, 1.0f, 50.0f, 10.0f, std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
 	
 	while(!glfwWindowShouldClose(window)){
 		auto now2 = std::chrono::high_resolution_clock::now();

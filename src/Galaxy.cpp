@@ -3,7 +3,7 @@
 #include <cmath>
 #include <iostream>
 
-const float mMin = 0.5f, mMax = 10.0f;
+const float mMin = 0.2f, mMax = 5.0f;
 
 std::vector<Star> generateStars(int N, int seed, float g){
 	std::vector<Star> stars = std::vector<Star>(N, Star(1, 1, g));
@@ -21,8 +21,8 @@ std::vector<Star> generateStars(int N, int seed, float g){
 	return stars;
 }
 
-Galaxy::Galaxy(int N, float g, float hr, float hz, int seed):
-	N(N), stars(generateStars(N, seed, g)), sim(stars, g, hr, hz, seed){
+Galaxy::Galaxy(int N, int NCloud, float g, float hr, float hz, int seed):
+	N(N), NCloud(NCloud), stars(generateStars(N, seed, g)), sim(stars, NCloud, g, hr, hz, seed){
 	
 }
 

@@ -3,6 +3,7 @@
 in vec4 vertexColor;
 in float r;
 flat in ivec4 sStage;
+flat in ivec4 cloud;
 
 out vec4 color;
 
@@ -14,10 +15,14 @@ float sinc2(float x){
 }
 
 void main(){
-	if(sStage.x == 0 && sStage.y == 0 && sStage.z == 0 && sStage.w == 0) discard;
-	if(r <= 0) discard;
-	if (length(gl_PointCoord - 0.5) > 0.5) {
-		discard;
-	} else
-		color = vec4(vertexColor.xyz, min(1, vertexColor.w * sinc2(2 * pi * length(gl_PointCoord - 0.5))));
+	if(cloud.x == 1){
+		color = vec4(1, 1, 1, 1);
+	}else{
+		if(sStage.x == 0 && sStage.y == 0 && sStage.z == 0 && sStage.w == 0) discard;
+		if(r <= 0) discard;
+		if (length(gl_PointCoord - 0.5) > 0.5) {
+			discard;
+		} else
+			color = vec4(vertexColor.xyz, min(1, vertexColor.w * sinc2(2 * pi * length(gl_PointCoord - 0.5))));
+	}
 }

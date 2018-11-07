@@ -67,16 +67,16 @@ GLuint generateComputeProgram(const char* computeFile){
 	return programID;
 }
 
-SimulationSimple::SimulationSimple(int N, float g, float hr, float hz, int seed):
-	N(N), g(g), hr(hr), hz(hz), dist(seed){
+SimulationSimple::SimulationSimple(int N, int NCloud, float g, float hr, float hz, int seed):
+	N(N), NCloud(NCloud), g(g), hr(hr), hz(hz), dist(seed){
 	srand(seed);
 	dist.setH(this->hr, this->hz);
-	xParticles = std::vector<glm::vec4>(N, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-	vParticles = std::vector<glm::vec4>(N, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-	colorBufferData = std::vector<glm::vec4>(N, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	mass = std::vector<float>(N, 5.0f);
+	xParticles = std::vector<glm::vec4>(N + NCloud, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	vParticles = std::vector<glm::vec4>(N + NCloud, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	colorBufferData = std::vector<glm::vec4>(N + NCloud, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	mass = std::vector<float>(N + NCloud, 1.0f);
 	
-	for(int i = 0;i < N;i++){
+	for(int i = 0;i < N + NCloud;i++){
 		glm::vec4 pos = dist.evalPos();
 		glm::vec4& x = xParticles[i];
 		x.x = pos.x;
@@ -89,14 +89,14 @@ SimulationSimple::SimulationSimple(int N, float g, float hr, float hz, int seed)
 	
 	glm::vec3 mmp = glm::vec3(0, 0, 0);
 	totmass = 0;
-	for(int i = 0;i < N;i++){
+	for(int i = 0;i < N + NCloud;i++){
 		glm::vec4& x = xParticles[i];
 		float m = mass[i];
 		mmp += glm::vec3(m * x.x, m * x.y, m * x.z);
 		totmass += m;
 	}
 	mmp /= totmass;
-	for(int i = 0;i < N;i++){
+	for(int i = 0;i < N + NCloud;i++){
 		glm::vec4& x = xParticles[i];
 		x.x -= mmp.x;
 		x.y -= mmp.y;
@@ -131,7 +131,7 @@ SimulationSimple::SimulationSimple(int N, float g, float hr, float hz, int seed)
 	glBufferData(GL_ARRAY_BUFFER, colorBufferData.size() * sizeof(glm::vec4), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, colorBufferData.size() * sizeof(glm::vec4), colorBufferData.data());
 	
-	std::vector<glm::ivec4> stageBufferData(N, glm::ivec4(0));
+	std::vector<glm::ivec4> stageBufferData(N + NCloud, glm::ivec4(0));
 	glGenBuffers(1, &stageBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, stageBuffer);
 	glBufferData(GL_ARRAY_BUFFER, stageBufferData.size() * sizeof(glm::ivec4), NULL, GL_DYNAMIC_DRAW);
@@ -158,40 +158,50 @@ SimulationSimple::SimulationSimple(int N, float g, float hr, float hz, int seed)
 	glBufferData(GL_SHADER_STORAGE_BUFFER, mass.size() * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, mass.size() * sizeof(GLfloat), mass.data());
 	
-	std::vector<float> radii(N);
-	for(int i = 0;i < N;i++) radii[i] = 5 * pow(mass[i], 1.0f / 3.0f);
+	std::vector<float> radii(N + NCloud);
+	for(int i = 0;i < N + NCloud;i++) radii[i] = 5 * pow(mass[i], 1.0f / 3.0f);
 	glGenBuffers(1, &radiusBuffer);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, radiusBuffer);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, radii.size() * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, radii.size() * sizeof(GLfloat), radii.data());
 	
-	std::vector<float> lums(N);
-	for(int i = 0;i < N;i++) lums[i] = 1;
+	std::vector<float> lums(N + NCloud, 1);
+	//for(int i = 0;i < N + NCloud;i++) lums[i] = 1;
 	glGenBuffers(1, &luminosityBuffer);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, luminosityBuffer);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, lums.size() * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, lums.size() * sizeof(GLfloat), lums.data());
+
+	std::vector<glm::ivec4> isCloud(N + NCloud, glm::ivec4(0));
+	//bool isCloud[N + NCloud] = {false};
+	for(int i = N;i < N + NCloud;i++) isCloud[i] = glm::ivec4(1);
+	glGenBuffers(1, &isCloudBuffer);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, isCloudBuffer);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, isCloud.size() * sizeof(glm::ivec4), NULL, GL_STATIC_DRAW);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, isCloud.size() * sizeof(glm::ivec4), isCloud.data());
 }
 
-SimulationSimple::SimulationSimple(std::vector<Star>& stars, float g, float hr, float hz, int seed):
-	N(stars.size()), g(g), hr(hr), hz(hz), dist(seed){
+SimulationSimple::SimulationSimple(std::vector<Star>& stars, int NCloud, float g, float hr, float hz, int seed):
+	N(stars.size()), NCloud(NCloud), g(g), hr(hr), hz(hz), dist(seed){
 	srand(seed);
 	dist.setH(this->hr, this->hz);
-	xParticles = std::vector<glm::vec4>(N, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-	vParticles = std::vector<glm::vec4>(N, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-	colorBufferData = std::vector<glm::vec4>(N, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	mass = std::vector<float>(N, 1.0f);
+	xParticles = std::vector<glm::vec4>(N + NCloud, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	vParticles = std::vector<glm::vec4>(N + NCloud, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	colorBufferData = std::vector<glm::vec4>(N + NCloud, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	mass = std::vector<float>(N + NCloud, 1.0f);
 	for(int i = 0;i < N;i++){
 		colorBufferData[i] = getColour(stars[i].T());
+		//std::cout << stars[i].getM() << " " << stars[i].getR() << " " << stars[i].T() << " " << colorBufferData[i].x << " " << colorBufferData[i].y << " " << colorBufferData[i].z << " " << stars[i].getTC() << std::endl;
 		mass[i] = stars[i].getM();
 	}
 	
-	for(int i = 0;i < N;i++){
+	for(int i = 0;i < N + NCloud;i++){
 		glm::vec4 pos = dist.evalPos();
 		glm::vec4& x = xParticles[i];
 		x.x = pos.x;
 		x.y = pos.z;
 		x.z = pos.y;
+		//Kijk nog ff naar kleur want zonder dit is alles blauw
 		glm::vec4& c = colorBufferData[i];
 		float T = 1000 + 10000 * (float) rand() / RAND_MAX;
 		c = getColour(T);
@@ -199,14 +209,14 @@ SimulationSimple::SimulationSimple(std::vector<Star>& stars, float g, float hr, 
 	
 	glm::vec3 mmp = glm::vec3(0, 0, 0);
 	totmass = 0;
-	for(int i = 0;i < N;i++){
+	for(int i = 0;i < N + NCloud;i++){
 		glm::vec4& x = xParticles[i];
 		float m = mass[i];
 		mmp += glm::vec3(m * x.x, m * x.y, m * x.z);
 		totmass += m;
 	}
 	mmp /= totmass;
-	for(int i = 0;i < N;i++){
+	for(int i = 0;i < N + NCloud;i++){
 		glm::vec4& x = xParticles[i];
 		x.x -= mmp.x;
 		x.y -= mmp.y;
@@ -241,8 +251,7 @@ SimulationSimple::SimulationSimple(std::vector<Star>& stars, float g, float hr, 
 	glBufferData(GL_ARRAY_BUFFER, colorBufferData.size() * sizeof(glm::vec4), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, colorBufferData.size() * sizeof(glm::vec4), colorBufferData.data());
 	
-	std::vector<glm::ivec4> stageBufferData(N, glm::ivec4(0));
-	//std::cout << stageBufferData[0].x << " " << stageBufferData[0].y << " " << stageBufferData[0].z << " " << stageBufferData[0].w << std::endl;
+	std::vector<glm::ivec4> stageBufferData(N + NCloud, glm::ivec4(0));
 	glGenBuffers(1, &stageBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, stageBuffer);
 	glBufferData(GL_ARRAY_BUFFER, stageBufferData.size() * sizeof(glm::ivec4), NULL, GL_DYNAMIC_DRAW);
@@ -269,24 +278,32 @@ SimulationSimple::SimulationSimple(std::vector<Star>& stars, float g, float hr, 
 	glBufferData(GL_SHADER_STORAGE_BUFFER, mass.size() * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, mass.size() * sizeof(GLfloat), mass.data());
 	
-	std::vector<float> radii = std::vector<float>(N);
+	std::vector<float> radii = std::vector<float>(N + NCloud, 1);
 	for(int i = 0;i < N;i++) radii[i] = stars[i].getR();
 	glGenBuffers(1, &radiusBuffer);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, radiusBuffer);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, radii.size() * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, radii.size() * sizeof(GLfloat), radii.data());
 	
-	std::vector<float> lums(N);
-	for(int i = 0;i < N;i++) lums[i] = 1;
+	std::vector<float> lums(N + NCloud, 1);
+	//for(int i = 0;i < N + NCloud;i++) lums[i] = 1;
 	glGenBuffers(1, &luminosityBuffer);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, luminosityBuffer);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, lums.size() * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, lums.size() * sizeof(GLfloat), lums.data());
+	
+	std::vector<glm::ivec4> isCloud(N + NCloud, glm::ivec4(0));
+	//bool isCloud[N + NCloud] = {false};
+	for(int i = N;i < N + NCloud;i++) isCloud[i] = glm::ivec4(1);
+	glGenBuffers(1, &isCloudBuffer);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, isCloudBuffer);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, isCloud.size() * sizeof(glm::ivec4), NULL, GL_STATIC_DRAW);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, isCloud.size() * sizeof(glm::ivec4), isCloud.data());
 }
 
 void SimulationSimple::update(float dt){
 	glUseProgram(computeProgram);
-	glUniform1i(nID, N);
+	glUniform1i(nID, N + NCloud);
 	glUniform1f(mID, totmass);
 	glUniform1f(gID, g);
 	glUniform1f(dtID, dt);
@@ -296,7 +313,7 @@ void SimulationSimple::update(float dt){
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, velocityTargetBuffer);
 	
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-	glDispatchCompute(N, 1, 1);
+	glDispatchCompute(N + NCloud, 1, 1);
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 	
 	std::swap(vertexBuffer, vertexTargetBuffer);
@@ -317,7 +334,7 @@ void SimulationSimple::draw(){
 	glEnableVertexAttribArray(3);
 	glBindBuffer(GL_ARRAY_BUFFER, stageBuffer);
 	glVertexAttribPointer(3, 4, GL_INT, GL_FALSE, 0, (void*) 0);
-	glDrawArrays(GL_POINTS, 0, N);
+	glDrawArrays(GL_POINTS, 0, N + NCloud);
 	glDisableVertexAttribArray(3);
 	glDisableVertexAttribArray(2);
 	glDisableVertexAttribArray(1);
