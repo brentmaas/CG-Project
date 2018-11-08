@@ -12,7 +12,9 @@ std::vector<Star> generateStars(int N, int seed, float g){
 	//float r0 = 1.5f * pow(mMax / rhoC, 1.0f / 3.0f);
 	for(int i = 0;i < N;i++){
 		float m = mDist.evalMass();
-		stars[i].setMR(m, 5 * pow(m, 1.0f / 3.0f));
+		float r = pow(mDist.evalMass(), 1.0f / 3.0f);
+		stars[i].setMR(m, r);
+		//stars[i].setMR(m, 5 * pow(m, 1.0f / 3.0f));
 		//stars[i].setMR(m, r0);
 	}
 	float minAge = stars[0].getTC();
@@ -28,7 +30,6 @@ Galaxy::Galaxy(int N, int NCloud, float g, float hr, float hz, int seed, GLuint 
 
 void Galaxy::update(float dt){
 	for(int i = 0;i < N;i++) stars[i].update(dt);
-	sim.updateRadiusBuffer(stars);
 	sim.updateLuminosityBuffer(stars);
 	sim.updateStageBuffer(stars);
 	sim.update(dt);

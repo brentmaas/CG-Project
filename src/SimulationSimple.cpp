@@ -165,13 +165,6 @@ SimulationSimple::SimulationSimple(std::vector<Star>& stars, int NCloud, float g
 	glBufferData(GL_SHADER_STORAGE_BUFFER, mass.size() * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, mass.size() * sizeof(GLfloat), mass.data());
 	
-	std::vector<float> radii = std::vector<float>(N + NCloud, 10);
-	for(int i = 0;i < N;i++) radii[i] = stars[i].getR();
-	glGenBuffers(1, &radiusBuffer);
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, radiusBuffer);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, radii.size() * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
-	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, radii.size() * sizeof(GLfloat), radii.data());
-	
 	std::vector<float> lums(N + NCloud, 100000);
 	//for(int i = 0;i < N + NCloud;i++) lums[i] = 1;
 	glGenBuffers(1, &luminosityBuffer);
@@ -268,13 +261,6 @@ void SimulationSimple::draw(){
 	glDisableVertexAttribArray(0);
 }
 
-void SimulationSimple::updateRadiusBuffer(std::vector<Star>& stars){
-	std::vector<float> radii = std::vector<float>(N);
-	for(int i = 0;i < N;i++) radii[i] = stars[i].getR();
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, radiusBuffer);
-	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, radii.size() * sizeof(GLfloat), radii.data());
-}
-
 void SimulationSimple::updateLuminosityBuffer(std::vector<Star>& stars){
 	std::vector<float> lums = std::vector<float>(N + NCloud, 100000);
 	for(int i = 0;i < N;i++) lums[i] = stars[i].L();
@@ -293,7 +279,6 @@ SimulationSimple::~SimulationSimple(){
 	glDeleteBuffers(1, &velocityBuffer);
 	glDeleteBuffers(1, &velocityTargetBuffer);
 	glDeleteBuffers(1, &massBuffer);
-	glDeleteBuffers(1, &radiusBuffer);
 	glDeleteBuffers(1, &vertexBuffer);
 	glDeleteBuffers(1, &vertexTargetBuffer);
 	glDeleteBuffers(1, &colorBuffer);
