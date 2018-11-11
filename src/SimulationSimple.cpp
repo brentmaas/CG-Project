@@ -72,8 +72,8 @@ SimulationSimple::SimulationSimple(std::vector<Star>& stars, int NCloud, float g
 	N(stars.size()), NCloud(NCloud), g(g), hr(hr), hz(hz), dist(seed){
 	srand(seed);
 	dist.setH(this->hr, this->hz);
-	xParticles = std::vector<glm::vec4>(N + NCloud, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-	vParticles = std::vector<glm::vec4>(N + NCloud, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	xParticles = std::vector<glm::vec4>(N + NCloud, glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
+	vParticles = std::vector<glm::vec4>(N + NCloud, glm::vec4(0.0f, 0.0f, 0.0f, 0.0f));
 	colorBufferData = std::vector<glm::vec4>(N + NCloud, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	mass = std::vector<float>(N + NCloud, 1.0f);
 	for(int i = 0;i < N;i++){
@@ -192,10 +192,6 @@ SimulationSimple::SimulationSimple(std::vector<Star>& stars, int NCloud, float g
 			float r2 = (x - side / 2) * (x - side / 2) + (y - side / 2) * (y - side / 2);
 			if(r2 <= side * side / 4){
 				float val = alphaScaling * 0.5 * (1 + noise.Evaluate((x - side / 2) * scaling, (y - side / 2)) * scaling);
-				//data[4 * (x + y * side)] = val;
-				//data[4 * (x + y * side) + 1] = val;
-				//data[4 * (x + y * side) + 2] = val;
-				//data[4 * (x + y * side) + 3] = pow(E, -2 * r2 / (side * side)) - corr;
 				data[x + y * side].x = 1;
 				data[x + y * side].y = 1;
 				data[x + y * side].z = 1;
@@ -240,7 +236,6 @@ void SimulationSimple::draw(){
 	glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (void*) 0);
 	glEnableVertexAttribArray(2);
-	//glBindBuffer(GL_ARRAY_BUFFER, radiusBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, luminosityBuffer);
 	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 0, (void*) 0);
 	glEnableVertexAttribArray(3);
