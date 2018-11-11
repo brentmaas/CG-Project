@@ -16,6 +16,9 @@ const float PI = 3.14159265359f;
 const int width = 1200, height = 800;
 const float targetFPS = 60.0f;
 
+std::vector<float> fpsBuffer = std::vector<float>(10, 0);
+int fpsBufferIndex = 0;
+
 GLuint loadShader(const char* file, GLuint type){
 	GLuint shaderID = glCreateShader(type);
 	
@@ -74,6 +77,17 @@ GLuint generateProgram(const char* vertexFile, const char* fragmentFile){
 	glDeleteShader(fragmentShaderID);
 	
 	return programID;
+}
+
+void updateFPS(float fps){
+	fpsBuffer[fpsBufferIndex] = fps;
+	fpsBufferIndex = (fpsBufferIndex + 1) % fpsBuffer.size();
+}
+
+int getFPS(){
+	float fps = 0;
+	for(int i = 0;i < (int) fpsBuffer.size();i++) fps += fpsBuffer[i];
+	return (int) (fps / fpsBuffer.size());
 }
 
 int main(int argc, char **argv){
@@ -140,7 +154,9 @@ int main(int argc, char **argv){
 		float dt = d.count();
 		now = now2;
 		
-		glfwSetWindowTitle(window, (title + " - " + std::to_string((int) (1.0f / dt)) + " fps" + (play ? "" : " - Paused")).c_str());
+		updateFPS(1.0f / dt);
+		
+		glfwSetWindowTitle(window, (title + " - " + std::to_string(getFPS()) + " fps" + (play ? "" : " - Paused")).c_str());
 		
 		//galaxy.update(dt / 10.0f);
 		if(play) galaxy.update(0.00025f);
