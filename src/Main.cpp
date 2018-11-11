@@ -116,7 +116,6 @@ int main(int argc, char **argv){
 	glUniformMatrix4fv(particlesMatrixID, 1, GL_FALSE, &mvp[0][0]);
 	
 	glEnable(GL_MULTISAMPLE);
-	glEnable(GL_PROGRAM_POINT_SIZE_EXT);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	

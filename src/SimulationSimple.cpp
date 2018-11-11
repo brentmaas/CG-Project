@@ -165,24 +165,32 @@ SimulationSimple::SimulationSimple(std::vector<Star>& stars, int NCloud, float g
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, mass.size() * sizeof(GLfloat), mass.data());
 	
 	std::vector<float> lums(N + NCloud, 100000);
-	//for(int i = 0;i < N + NCloud;i++) lums[i] = 1;
 	glGenBuffers(1, &luminosityBuffer);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, luminosityBuffer);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, lums.size() * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, lums.size() * sizeof(GLfloat), lums.data());
 	
 	std::vector<glm::ivec4> isCloud(N + NCloud, glm::ivec4(0));
-	//bool isCloud[N + NCloud] = {false};
 	for(int i = N;i < N + NCloud;i++) isCloud[i] = glm::ivec4(1);
 	glGenBuffers(1, &isCloudBuffer);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, isCloudBuffer);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, isCloud.size() * sizeof(glm::ivec4), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, isCloud.size() * sizeof(glm::ivec4), isCloud.data());
 	
+	std::vector<glm::vec4> squareData = {glm::vec4(-0.5f, -0.5f, 0, 0), glm::vec4(-0.5f, 0.5f, 0, 0), glm::vec4(0.5f, 0.5f, 0, 0),
+										 glm::vec4(-0.5f, -0.5f, 0, 0), glm::vec4(0.5f, 0.5f, 0, 0), glm::vec4(0.5f, -0.5f, 0, 0)};
+	glGenBuffers(1, &squareBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, squareBuffer);
+	glBufferData(GL_ARRAY_BUFFER, squareData.size() * sizeof(glm::vec4), squareData.data(), GL_STATIC_DRAW);
+	
+	std::vector<glm::vec2> uvData = {glm::vec2(0, 0), glm::vec2(0, 1), glm::vec2(1, 1),
+									 glm::vec2(0, 0), glm::vec2(1, 1), glm::vec2(1, 0)};
+	glGenBuffers(1, &uvBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
+	glBufferData(GL_ARRAY_BUFFER, uvData.size() * sizeof(glm::vec2), uvData.data(), GL_STATIC_DRAW);
+	
 	const int side = 1024;
 	const float scaling = 0.1f, alphaScaling = 0.1f;
-	//float data[4 * side * side] = {0.0f};
-	//glm::vec4 data[side * side] = {glm::vec4(0.0f)};
 	std::vector<glm::vec4> data(side * side, glm::vec4(0.0f));
 	OpenSimplexNoise noise(seed);
 	//Gauss 4 sigma
@@ -244,9 +252,24 @@ void SimulationSimple::draw(){
 	glEnableVertexAttribArray(4);
 	glBindBuffer(GL_ARRAY_BUFFER, isCloudBuffer);
 	glVertexAttribPointer(4, 4, GL_INT, GL_FALSE, 0, (void*) 0);
+	glEnableVertexAttribArray(5);
+	glBindBuffer(GL_ARRAY_BUFFER, squareBuffer);
+	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 0, (void*) 0);
+	glEnableVertexAttribArray(6);
+	glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
+	glVertexAttribPointer(6, 2, GL_FLOAT, GL_FALSE, 0, (void*) 0);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, cloudTextureID);
-	glDrawArrays(GL_POINTS, 0, N + NCloud);
+	glVertexAttribDivisor(0, 1);
+	glVertexAttribDivisor(1, 1);
+	glVertexAttribDivisor(2, 1);
+	glVertexAttribDivisor(3, 1);
+	glVertexAttribDivisor(4, 1);
+	glVertexAttribDivisor(5, 0);
+	glVertexAttribDivisor(6, 0);
+	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, N + NCloud);
+	glDisableVertexAttribArray(6);
+	glDisableVertexAttribArray(5);
 	glDisableVertexAttribArray(4);
 	glDisableVertexAttribArray(3);
 	glDisableVertexAttribArray(2);

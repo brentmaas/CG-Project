@@ -24,7 +24,8 @@ private:
 	std::vector<glm::vec4> xParticles, vParticles, colorBufferData;
 	std::vector<float> mass;
 	GLuint nID, mgID, dtID;
-	GLuint velocityBuffer, velocityTargetBuffer, massBuffer, luminosityBuffer, vertexBuffer, vertexTargetBuffer, colorBuffer, stageBuffer, isCloudBuffer, computeProgram;
+	GLuint velocityBuffer, massBuffer, luminosityBuffer, vertexBuffer, colorBuffer, stageBuffer, isCloudBuffer, squareBuffer, uvBuffer;
+	GLuint computeProgram, velocityTargetBuffer, vertexTargetBuffer;
 	GLuint cloudTextureID, cloudTextureSamplerID;
 	DistributionDisk dist;
 };
