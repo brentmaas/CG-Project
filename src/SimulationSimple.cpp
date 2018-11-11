@@ -145,8 +145,7 @@ SimulationSimple::SimulationSimple(std::vector<Star>& stars, int NCloud, float g
 	glBufferSubData(GL_ARRAY_BUFFER, 0, stageBufferData.size() * sizeof(glm::ivec4), stageBufferData.data());
 	
 	computeProgram = generateComputeProgram("resources/shaders/particles_simple.compute");
-	mID = glGetUniformLocation(computeProgram, "m");
-	gID = glGetUniformLocation(computeProgram, "g");
+	mgID = glGetUniformLocation(computeProgram, "mg");
 	dtID = glGetUniformLocation(computeProgram, "dt");
 	nID = glGetUniformLocation(computeProgram, "N");
 	
@@ -218,8 +217,7 @@ SimulationSimple::SimulationSimple(std::vector<Star>& stars, int NCloud, float g
 void SimulationSimple::update(float dt){
 	glUseProgram(computeProgram);
 	glUniform1i(nID, N + NCloud);
-	glUniform1f(mID, totmass);
-	glUniform1f(gID, g);
+	glUniform1f(mgID, totmass * g);
 	glUniform1f(dtID, dt);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertexBuffer);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, vertexTargetBuffer);
