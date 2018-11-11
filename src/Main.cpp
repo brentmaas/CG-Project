@@ -9,7 +9,6 @@
 #include <chrono>
 #include <thread>
 
-//#include "SimulationSimple.hpp"
 #include "Galaxy.hpp"
 
 const std::string title = "CG Project Brent Maas";
@@ -108,12 +107,14 @@ int main(int argc, char **argv){
 	
 	glUseProgram(programParticles);
 	
-	glm::mat4 projection = glm::perspective(45.0f, ((float) width) / height, 0.01f, 100000.0f);
+	glm::mat4 projection = glm::perspective(45.0f, ((float) width) / height, 0.01f, 10000.0f);
 	glm::mat4 view = glm::lookAt(glm::vec3(0, 0, 500.0f), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 	glm::mat4 model = glm::mat4(1.0f);
 	glm::mat4 mvp = projection * view * model;
 	GLuint particlesMatrixID = glGetUniformLocation(programParticles, "MVP");
 	glUniformMatrix4fv(particlesMatrixID, 1, GL_FALSE, &mvp[0][0]);
+	GLuint particlesMatrixSquareID = glGetUniformLocation(programParticles, "MVPSquare");
+	glUniformMatrix4fv(particlesMatrixSquareID, 1, GL_FALSE, &mvp[0][0]);
 	
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_BLEND);

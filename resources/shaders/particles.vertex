@@ -9,6 +9,7 @@ layout(location = 5) in vec4 squarePosition;
 layout(location = 6) in vec2 uvPosition;
 
 uniform mat4 MVP;
+uniform mat4 MVPSquare;
 
 out vec4 vertexColor;
 out float l;
@@ -18,7 +19,7 @@ out vec2 uv;
 
 void main(){
 	//Don't MVP * vertexPosition, positions are defined as (x, y, z, 0) to help the simulation
-	gl_Position = MVP * vec4(vertexPosition.xyz, 1) + sqrt(sqrt(luminosity)) * vec4(squarePosition.xyz, 0);
+	gl_Position = MVP * vec4(vertexPosition.xyz, 1) + MVPSquare * vec4(sqrt(sqrt(luminosity)) * squarePosition.xyz, 0);
 	vertexColor = color;
 	l = luminosity;
 	sStage = stage;
