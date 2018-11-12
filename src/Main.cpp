@@ -96,7 +96,7 @@ int main(int argc, char **argv){
 		return 1;
 	}
 	
-	glfwWindowHint(GLFW_SAMPLES, 8);
+	glfwWindowHint(GLFW_SAMPLES, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -127,12 +127,11 @@ int main(int argc, char **argv){
 	glm::mat4 mvp = projection * view * model;
 	GLuint particlesMatrixID = glGetUniformLocation(programParticles, "MVP");
 	glUniformMatrix4fv(particlesMatrixID, 1, GL_FALSE, &mvp[0][0]);
-	GLuint particlesMatrixSquareID = glGetUniformLocation(programParticles, "MVPSquare");
-	glUniformMatrix4fv(particlesMatrixSquareID, 1, GL_FALSE, &mvp[0][0]);
 	
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_PROGRAM_POINT_SIZE_EXT);
 	
 	glClearColor(0.05f, 0.05f, 0.1f, 1.0f);
 	

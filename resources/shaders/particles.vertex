@@ -5,24 +5,20 @@ layout(location = 1) in vec4 color;
 layout(location = 2) in float luminosity;
 layout(location = 3) in ivec4 stage;
 layout(location = 4) in ivec4 isCloud;
-layout(location = 5) in vec4 squarePosition;
-layout(location = 6) in vec2 uvPosition;
 
 uniform mat4 MVP;
-uniform mat4 MVPSquare;
 
 out vec4 vertexColor;
 out float l;
 flat out ivec4 sStage;
 flat out ivec4 cloud;
-out vec2 uv;
 
 void main(){
 	//Don't MVP * vertexPosition, positions are defined as (x, y, z, 0) to help the simulation
-	gl_Position = MVP * vec4(vertexPosition.xyz, 1) + MVPSquare * vec4(sqrt(sqrt(luminosity)) * squarePosition.xyz, 0);
+	gl_Position = MVP * vec4(vertexPosition.xyz, 1);
 	vertexColor = color;
 	l = luminosity;
 	sStage = stage;
 	cloud = isCloud;
-	uv = uvPosition;
+	gl_PointSize = pow(luminosity, 0.25);
 }

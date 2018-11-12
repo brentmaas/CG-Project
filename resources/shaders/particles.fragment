@@ -4,7 +4,6 @@ in vec4 vertexColor;
 in float l;
 flat in ivec4 sStage;
 flat in ivec4 cloud;
-in vec2 uv;
 
 out vec4 color;
 
@@ -19,13 +18,13 @@ float sinc2(float x){
 
 void main(){
 	if(cloud.x != 0){
-		color = texture(texSampler, uv);
+		color = texture(texSampler, gl_PointCoord);
 	}else{
 		if(sStage.x == 0 && sStage.y == 0 && sStage.z == 0 && sStage.w == 0) discard;
 		if(l <= 0) discard;
-		if (length(uv - 0.5) > 0.5) {
+		if (length(gl_PointCoord - 0.5) > 0.5) {
 			discard;
 		} else
-			color = vec4(vertexColor.xyz, min(1, vertexColor.w * sinc2(2 * pi * length(uv - 0.5))));
+			color = vec4(vertexColor.xyz, min(1, vertexColor.w * sinc2(2 * pi * length(gl_PointCoord - 0.5))));
 	}
 }
