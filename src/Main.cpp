@@ -157,7 +157,6 @@ int main(int argc, char **argv){
 		
 		glfwSetWindowTitle(window, (title + " - " + std::to_string(getFPS()) + " fps" + (play ? "" : " - Paused")).c_str());
 		
-		//galaxy.update(dt / 10.0f);
 		if(play) galaxy.update(0.00025f);
 		glUseProgram(programParticles);
 		

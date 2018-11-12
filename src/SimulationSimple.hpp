@@ -14,7 +14,6 @@ public:
 	SimulationSimple(std::vector<Star>& stars, int NCloud, float g, float hr, float hz, int seed, GLuint programID);
 	void update(float dt);
 	void draw();
-	void updateRadiusBuffer(std::vector<Star>& stars);
 	void updateLuminosityBuffer(std::vector<Star>& stars);
 	void updateStageBuffer(std::vector<Star>& stars);
 	~SimulationSimple();
