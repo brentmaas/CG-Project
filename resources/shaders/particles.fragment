@@ -9,7 +9,7 @@ out vec4 color;
 
 uniform sampler2D texSampler;
 
-const float pi = 3.141592f;
+const float twopi = 6.28318530718f;
 
 float sinc2(float x){
 	if(x == 0) return 1;
@@ -17,14 +17,11 @@ float sinc2(float x){
 }
 
 void main(){
-	if(cloud.x != 0){
-		color = texture(texSampler, gl_PointCoord);
-	}else{
-		if(sStage.x == 0 && sStage.y == 0 && sStage.z == 0 && sStage.w == 0) discard;
+	if(cloud.x != 0) color = texture(texSampler, gl_PointCoord);
+	else{
+		if(sStage.x == 0) discard;
 		if(l <= 0) discard;
-		if (length(gl_PointCoord - 0.5) > 0.5) {
-			discard;
-		} else
-			color = vec4(vertexColor.xyz, min(1, vertexColor.w * sinc2(2 * pi * length(gl_PointCoord - 0.5))));
+		if (length(gl_PointCoord - 0.5) > 0.5) discard;
+		else color = vec4(vertexColor.xyz, min(1, vertexColor.w * sinc2(twopi * length(gl_PointCoord - 0.5))));
 	}
 }

@@ -13,6 +13,7 @@ public:
 	void update(float dt);
 	void draw();
 	void killAll();
+	void reset();
 private:
 	int N, NCloud;
 	std::vector<Star> stars;

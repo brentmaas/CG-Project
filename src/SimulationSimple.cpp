@@ -79,7 +79,6 @@ SimulationSimple::SimulationSimple(std::vector<Star>& stars, int NCloud, float g
 	mass = std::vector<float>(N + NCloud, 1.0f);
 	for(int i = 0;i < N;i++){
 		colorBufferData[i] = getColour(stars[i].T());
-		//std::cout << stars[i].getM() << " " << stars[i].getR() << " " << stars[i].T() << " " << colorBufferData[i].x << " " << colorBufferData[i].y << " " << colorBufferData[i].z << " " << stars[i].getTC() << std::endl;
 		mass[i] = stars[i].getM();
 	}
 	
@@ -89,10 +88,9 @@ SimulationSimple::SimulationSimple(std::vector<Star>& stars, int NCloud, float g
 		x.x = pos.x;
 		x.y = pos.z;
 		x.z = pos.y;
-		//Kijk nog ff naar kleur want zonder dit is alles blauw
-		glm::vec4& c = colorBufferData[i];
+		//Take random temperature for colours
 		float T = 1000 + 10000 * (float) rand() / RAND_MAX;
-		c = getColour(T);
+		colorBufferData[i] = getColour(T);
 	}
 	
 	glm::vec3 mmp = glm::vec3(0, 0, 0);
