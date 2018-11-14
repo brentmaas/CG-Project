@@ -3,7 +3,9 @@
 #include <cmath>
 #include <iostream>
 
-const float mMin = 0.2f, mMax = 5.0f;
+const float mMin = 0.2f, mMax = 10.0f;
+
+int first = 0;
 
 std::vector<Star> generateStars(int N, int seed, float g){
 	std::vector<Star> stars = std::vector<Star>(N, Star(1, 1, g));
@@ -18,7 +20,10 @@ std::vector<Star> generateStars(int N, int seed, float g){
 		//stars[i].setMR(m, r0);
 	}
 	float minAge = stars[0].getTC();
-	for(int i = 1;i < N;i++) if(stars[i].getTC() < minAge) minAge = stars[i].getTC();
+	for(int i = 1;i < N;i++) if(stars[i].getTC() < minAge){
+		minAge = stars[i].getTC();
+		first = i;
+	}
 	for(int i = 0;i < N;i++) stars[i].addAge(minAge - 0.05f);
 	return stars;
 }
@@ -33,8 +38,20 @@ void Galaxy::update(float dt){
 	sim.updateLuminosityBuffer(stars);
 	sim.updateStageBuffer(stars);
 	sim.update(dt);
+	
+	std::cout << stars[first].L() << " " << stars[first].getStage() << " " << stars[first].getAge() - stars[first].getTC2() << std::endl;
 }
 
 void Galaxy::draw(){
 	sim.draw();
+}
+
+void Galaxy::killAll(){
+	int killcount = 0;
+	for(int i = 0;i < (int) stars.size();i++) if(stars[i].getStage() == 2){
+		stars[i].setAge(stars[i].getTC2() - 0.1);
+		//stars[i].setStage(3);
+		killcount++;
+	}
+	std::cout << "Killed " << killcount << std::endl;
 }

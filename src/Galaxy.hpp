@@ -12,6 +12,7 @@ public:
 	Galaxy(int N, int NCloud, float g, float hr, float hz, int seed, GLuint programID);
 	void update(float dt);
 	void draw();
+	void killAll();
 private:
 	int N, NCloud;
 	std::vector<Star> stars;
