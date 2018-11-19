@@ -195,10 +195,7 @@ int main(int argc, char **argv){
 		if(glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_RELEASE) timeblockSub = false;
 		if(glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) galaxy.killAll();
 		if(glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) galaxy.reset();
-		if(glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS){
-			galaxy.killAll();
-			kill = true;
-		}
+		if(glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) kill = true;
 		if(theta > PI / 2) theta = PI / 2;
 		if(theta < -PI / 2) theta = -PI / 2;
 		glm::mat4 mat = mvp * glm::rotate(glm::mat4(1.0f), theta, glm::vec3(1, 0, 0)) * glm::rotate(glm::mat4(1.0f), phi, glm::vec3(0, 1, 0));
