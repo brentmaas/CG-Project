@@ -19,9 +19,7 @@ float sinc2(float x){
 void main(){
 	if(cloud.x != 0) color = texture(texSampler, gl_PointCoord);
 	else{
-		if(sStage.x == 0) discard;
-		if(l <= 0) discard;
-		if (length(gl_PointCoord - 0.5) > 0.5) discard;
+		if(sStage.x == 0 || length(gl_PointCoord - 0.5) > 0.5) discard;
 		else color = vec4(vertexColor.xyz, min(1, vertexColor.w * sinc2(twopi * length(gl_PointCoord - 0.5))));
 	}
 }
