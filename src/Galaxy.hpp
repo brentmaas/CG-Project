@@ -3,8 +3,8 @@
 
 #include <vector>
 #include <GL/glew.h>
-#include "SimulationSimple.hpp"
 #include "Colour.hpp"
+#include "Simulation.hpp"
 #include "Star.hpp"
 
 class Galaxy{
@@ -17,7 +17,7 @@ public:
 private:
 	int N, NCloud;
 	std::vector<Star> stars;
-	SimulationSimple sim;
+	Simulation sim;
 };
 
 #endif

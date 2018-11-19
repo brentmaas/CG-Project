@@ -9,21 +9,20 @@
 #include "DistributionDisk.hpp"
 #include "Star.hpp"
 
-class SimulationSimple {
+class Simulation {
 public:
-	SimulationSimple(std::vector<Star>& stars, int NCloud, float g, float hr, float hz, int seed, GLuint programID);
+	Simulation(std::vector<Star>& stars, int NCloud, float g, float hr, float hz, int seed, GLuint programID);
 	void update(float dt);
 	void draw();
 	void updateLuminosityBuffer(std::vector<Star>& stars);
-	void updateStageBuffer(std::vector<Star>& stars);
-	~SimulationSimple();
+	~Simulation();
 private:
 	int N, NCloud;
 	float g, hr, hz, totmass;
 	std::vector<glm::vec4> xParticles, vParticles, colorBufferData;
 	std::vector<float> mass;
 	GLuint nID, mgID, dtID;
-	GLuint velocityBuffer, massBuffer, luminosityBuffer, vertexBuffer, colorBuffer, stageBuffer, isCloudBuffer;
+	GLuint velocityBuffer, massBuffer, luminosityBuffer, vertexBuffer, colorBuffer, isCloudBuffer;
 	GLuint computeProgram, velocityTargetBuffer, vertexTargetBuffer;
 	GLuint cloudTextureID, cloudTextureSamplerID;
 	DistributionDisk dist;

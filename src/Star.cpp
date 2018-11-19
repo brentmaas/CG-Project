@@ -40,6 +40,7 @@ void Star::reset(){
 
 //en.wikipedia.org/wiki/Mass%E2%80%93luminosity_relation
 float Star::L(){
+	if(stage == 0) return 0;
 	float L;
 	if(m < 0.43) L = 0.23 * pow(m, 2.3);
 	else if(m < 2) L = pow(m, 4);

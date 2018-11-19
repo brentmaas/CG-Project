@@ -1,4 +1,4 @@
-#include "SimulationSimple.hpp"
+#include "Simulation.hpp"
 
 #include <cmath>
 #include <iostream>
@@ -69,7 +69,7 @@ GLuint generateComputeProgram(const char* computeFile){
 	return programID;
 }
 
-SimulationSimple::SimulationSimple(std::vector<Star>& stars, int NCloud, float g, float hr, float hz, int seed, GLuint programID):
+Simulation::Simulation(std::vector<Star>& stars, int NCloud, float g, float hr, float hz, int seed, GLuint programID):
 	N(stars.size()), NCloud(NCloud), g(g), hr(hr), hz(hz), dist(seed){
 	srand(seed);
 	dist.setH(this->hr, this->hz);
@@ -137,12 +137,6 @@ SimulationSimple::SimulationSimple(std::vector<Star>& stars, int NCloud, float g
 	glBufferData(GL_ARRAY_BUFFER, colorBufferData.size() * sizeof(glm::vec4), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, colorBufferData.size() * sizeof(glm::vec4), colorBufferData.data());
 	
-	std::vector<glm::ivec4> stageBufferData(N + NCloud, glm::ivec4(0));
-	glGenBuffers(1, &stageBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, stageBuffer);
-	glBufferData(GL_ARRAY_BUFFER, stageBufferData.size() * sizeof(glm::ivec4), NULL, GL_DYNAMIC_DRAW);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, stageBufferData.size() * sizeof(glm::ivec4), stageBufferData.data());
-	
 	computeProgram = generateComputeProgram("resources/shaders/particles_simple.compute");
 	mgID = glGetUniformLocation(computeProgram, "mg");
 	dtID = glGetUniformLocation(computeProgram, "dt");
@@ -205,7 +199,7 @@ SimulationSimple::SimulationSimple(std::vector<Star>& stars, int NCloud, float g
 	cloudTextureSamplerID = glGetUniformLocation(programID, "texSampler");
 }
 
-void SimulationSimple::update(float dt){
+void Simulation::update(float dt){
 	glUseProgram(computeProgram);
 	glUniform1i(nID, N + NCloud);
 	glUniform1f(mgID, totmass * g);
@@ -223,7 +217,7 @@ void SimulationSimple::update(float dt){
 	std::swap(velocityBuffer, velocityTargetBuffer);
 }
 
-void SimulationSimple::draw(){
+void Simulation::draw(){
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, (void*) 0);
@@ -234,11 +228,8 @@ void SimulationSimple::draw(){
 	glBindBuffer(GL_ARRAY_BUFFER, luminosityBuffer);
 	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 0, (void*) 0);
 	glEnableVertexAttribArray(3);
-	glBindBuffer(GL_ARRAY_BUFFER, stageBuffer);
-	glVertexAttribPointer(3, 4, GL_INT, GL_FALSE, 0, (void*) 0);
-	glEnableVertexAttribArray(4);
 	glBindBuffer(GL_ARRAY_BUFFER, isCloudBuffer);
-	glVertexAttribPointer(4, 4, GL_INT, GL_FALSE, 0, (void*) 0);
+	glVertexAttribPointer(3, 4, GL_INT, GL_FALSE, 0, (void*) 0);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, cloudTextureID);
 	glDrawArrays(GL_POINTS, 0, N + NCloud);
@@ -249,27 +240,19 @@ void SimulationSimple::draw(){
 	glDisableVertexAttribArray(0);
 }
 
-void SimulationSimple::updateLuminosityBuffer(std::vector<Star>& stars){
+void Simulation::updateLuminosityBuffer(std::vector<Star>& stars){
 	std::vector<float> lums = std::vector<float>(N + NCloud, 100000);
 	for(int i = 0;i < N;i++) lums[i] = stars[i].L();
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, luminosityBuffer);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, lums.size() * sizeof(GLfloat), lums.data());
 }
 
-void SimulationSimple::updateStageBuffer(std::vector<Star>& stars){
-	std::vector<glm::ivec4> stageBufferData(N + NCloud, glm::ivec4(0));
-	for(int i = 0;i < N;i++) stageBufferData[i] = glm::ivec4(stars[i].getStage());
-	glBindBuffer(GL_ARRAY_BUFFER, stageBuffer);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, stageBufferData.size() * sizeof(glm::ivec4), stageBufferData.data());
-}
-
-SimulationSimple::~SimulationSimple(){
+Simulation::~Simulation(){
 	glDeleteBuffers(1, &velocityBuffer);
 	glDeleteBuffers(1, &velocityTargetBuffer);
 	glDeleteBuffers(1, &massBuffer);
 	glDeleteBuffers(1, &vertexBuffer);
 	glDeleteBuffers(1, &vertexTargetBuffer);
 	glDeleteBuffers(1, &colorBuffer);
-	glDeleteBuffers(1, &stageBuffer);
 	glDeleteProgram(computeProgram);
 }

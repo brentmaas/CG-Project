@@ -33,7 +33,6 @@ Galaxy::Galaxy(int N, int NCloud, float g, float hr, float hz, int seed, GLuint 
 void Galaxy::update(float dt){
 	for(int i = 0;i < N;i++) stars[i].update(dt);
 	sim.updateLuminosityBuffer(stars);
-	sim.updateStageBuffer(stars);
 	sim.update(dt);
 	
 	std::cout << stars[first].L() << " " << stars[first].getStage() << " " << stars[first].getAge() - stars[first].getTC2() << std::endl;
