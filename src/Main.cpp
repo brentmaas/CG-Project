@@ -8,16 +8,26 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <chrono>
 #include <thread>
+#include <cmath>
 
 #include "Galaxy.hpp"
 
 const std::string title = "CG Project Brent Maas";
 const float PI = 3.14159265359f;
+const float E = 2.71828182846f;
 const int width = 1200, height = 800;
 const float targetFPS = 60.0f;
 
 std::vector<float> fpsBuffer = std::vector<float>(10, 0);
 int fpsBufferIndex = 0;
+
+const float baseUpdateTime = 0.0005f;
+float timeFactor = 1.0f;
+bool timeblockAdd = false, timeblockSub = false;
+
+const float killspeed = 2;
+bool kill = false;
+float killtime = 0;
 
 GLuint loadShader(const char* file, GLuint type){
 	GLuint shaderID = glCreateShader(type);
@@ -153,11 +163,13 @@ int main(int argc, char **argv){
 		float dt = d.count();
 		now = now2;
 		
+		if(kill) killtime += dt;
+		
 		updateFPS(1.0f / dt);
 		
-		glfwSetWindowTitle(window, (title + " - " + std::to_string(getFPS()) + " fps" + (play ? "" : " - Paused")).c_str());
+		glfwSetWindowTitle(window, (title + " speed: " + std::to_string(timeFactor) + "x - " + std::to_string(getFPS()) + " fps" + (play ? "" : " - Paused")).c_str());
 		
-		if(play) galaxy.update(0.0005f);
+		if(play) galaxy.update(timeFactor * baseUpdateTime * pow(E, killspeed * killtime));
 		glUseProgram(programParticles);
 		
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -171,8 +183,22 @@ int main(int argc, char **argv){
 			spaceBlock = true;
 		}
 		if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE) spaceBlock = false;
+		if(glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS && !timeblockAdd){
+			timeFactor *= 2;
+			timeblockAdd = true;
+		}
+		if(glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_RELEASE) timeblockAdd = false;
+		if(glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS && !timeblockSub){
+			timeFactor *= 0.5f;
+			timeblockSub = true;
+		}
+		if(glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_RELEASE) timeblockSub = false;
 		if(glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) galaxy.killAll();
 		if(glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) galaxy.reset();
+		if(glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS){
+			galaxy.killAll();
+			kill = true;
+		}
 		if(theta > PI / 2) theta = PI / 2;
 		if(theta < -PI / 2) theta = -PI / 2;
 		glm::mat4 mat = mvp * glm::rotate(glm::mat4(1.0f), theta, glm::vec3(1, 0, 0)) * glm::rotate(glm::mat4(1.0f), phi, glm::vec3(0, 1, 0));
