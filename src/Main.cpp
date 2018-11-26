@@ -35,6 +35,8 @@ float killtime = 0;
 double cx = 0, cy = 0;
 bool dragging = false, clickBlock = false;
 
+bool resetBlock = false;
+
 GLuint loadShader(const char* file, GLuint type){
 	GLuint shaderID = glCreateShader(type);
 	
@@ -204,7 +206,7 @@ int main(int argc, char **argv){
 		if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) phi -= 0.5f * dt;
 		if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) theta -= 0.5f * dt;
 		if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) theta += 0.5f * dt;
-		if(!clickBlock) if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS){
+		if(!clickBlock && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS){
 			dragging = true;
 			clickBlock = true;
 			glfwGetCursorPos(window, &cx, &cy);
@@ -228,13 +230,13 @@ int main(int argc, char **argv){
 			else std::cout << "Unpaused" << std::endl;
 		}
 		if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE) spaceBlock = false;
-		if(glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS && !timeblockAdd){
+		if(!timeblockAdd && glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS){
 			timeFactor *= 2;
 			timeblockAdd = true;
 			std::cout << "Sped up, " << timeFactor << "x" << std::endl;
 		}
 		if(glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_RELEASE) timeblockAdd = false;
-		if(glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS && !timeblockSub){
+		if(!timeblockSub && glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS){
 			timeFactor *= 0.5f;
 			timeblockSub = true;
 			std::cout << "Slowed down, " << timeFactor << "x" << std::endl;
@@ -244,13 +246,15 @@ int main(int argc, char **argv){
 			galaxy.killAll();
 			std::cout << "Kill all" << std::endl;
 		}
-		if(glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS){
+		if(!resetBlock && glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS){
 			galaxy.reset();
 			kill = false;
 			killtime = 0;
+			resetBlock = true;
 			std::cout << "Reset" << std::endl;
 		}
-		if(glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS){
+		if(glfwGetKey(window, GLFW_KEY_R) == GLFW_RELEASE) resetBlock = false;
+		if(glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS){
 			kill = true;
 			std::cout << "Big oof" << std::endl;
 		}

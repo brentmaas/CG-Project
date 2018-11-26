@@ -247,6 +247,57 @@ void Simulation::updateLuminosityBuffer(std::vector<Star>& stars){
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, lums.size() * sizeof(GLfloat), lums.data());
 }
 
+void Simulation::reset(){
+	for(int i = 0;i < N + NCloud;i++){
+		glm::vec4 pos = dist.evalPos();
+		glm::vec4& x = xParticles[i];
+		x.x = pos.x;
+		x.y = pos.z;
+		x.z = pos.y;
+	}
+	
+	glm::vec3 mmp = glm::vec3(0, 0, 0);
+	totmass = 0;
+	for(int i = 0;i < N + NCloud;i++){
+		glm::vec4& x = xParticles[i];
+		float m = mass[i];
+		mmp += glm::vec3(m * x.x, m * x.y, m * x.z);
+		totmass += m;
+	}
+	mmp /= totmass;
+	for(int i = 0;i < N + NCloud;i++){
+		glm::vec4& x = xParticles[i];
+		x.x -= mmp.x;
+		x.y -= mmp.y;
+		x.z -= mmp.z;
+		float r = sqrt(x.x * x.x + x.y * x.y + x.z * x.z);
+		glm::vec4& v = vParticles[i];
+		if(r <= 0){
+			v = glm::vec4(0, 0, 0, 0);
+			continue;
+		}
+		float vtot = sqrt(g * totmass / r);
+		float rproj = sqrt(x.x * x.x + x.z * x.z);
+		float costheta = glm::dot(glm::vec3(x.x / r, x.y / r, x.z / r), glm::vec3(x.x / rproj, 0, x.z / rproj));
+		float vproj = vtot * costheta;
+		v.x = vproj * x.z / rproj;
+		v.y = ((x.y - mmp.y < 0) - (x.y - mmp.y > 0)) * vtot * sqrt(std::max(0.0f, 1 - costheta * costheta));
+		v.z = -vproj * x.x / rproj;
+	}
+	
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, vertexBuffer);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, xParticles.size() * sizeof(glm::vec4), xParticles.data());
+	
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, vertexTargetBuffer);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, xParticles.size() * sizeof(glm::vec4), xParticles.data());
+	
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, velocityBuffer);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, vParticles.size() * sizeof(glm::vec4), vParticles.data());
+	
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, velocityTargetBuffer);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, vParticles.size() * sizeof(glm::vec4), vParticles.data());
+}
+
 Simulation::~Simulation(){
 	glDeleteBuffers(1, &velocityBuffer);
 	glDeleteBuffers(1, &velocityTargetBuffer);

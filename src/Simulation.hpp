@@ -15,6 +15,7 @@ public:
 	void update(float dt);
 	void draw();
 	void updateLuminosityBuffer(std::vector<Star>& stars);
+	void reset();
 	~Simulation();
 private:
 	int N, NCloud;
