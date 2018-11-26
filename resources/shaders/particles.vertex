@@ -8,14 +8,12 @@ layout(location = 3) in ivec4 isCloud;
 uniform mat4 MVP;
 
 out vec4 vertexColor;
-out float l;
 flat out ivec4 cloud;
 
 void main(){
 	//Don't MVP * vertexPosition, positions are defined as (x, y, z, 0) to help the simulation
 	gl_Position = MVP * vec4(vertexPosition.xyz, 1);
 	vertexColor = color;
-	l = luminosity;
 	cloud = isCloud;
 	gl_PointSize = pow(luminosity, 0.25);
 }

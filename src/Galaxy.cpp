@@ -5,8 +5,6 @@
 
 const float mMin = 0.2f, mMax = 10.0f;
 
-//int first = 0;
-
 std::vector<Star> generateStars(int N, int seed, float g){
 	std::vector<Star> stars = std::vector<Star>(N, Star(1, 1, g));
 	DistributionMass mDist(seed);
@@ -17,10 +15,7 @@ std::vector<Star> generateStars(int N, int seed, float g){
 		stars[i].setMR(m, r);
 	}
 	float minAge = stars[0].getTC();
-	for(int i = 1;i < N;i++) if(stars[i].getTC() < minAge){
-		minAge = stars[i].getTC();
-		//first = i;
-	}
+	for(int i = 1;i < N;i++) if(stars[i].getTC() < minAge) minAge = stars[i].getTC();
 	for(int i = 0;i < N;i++) stars[i].addAge(minAge - 0.05f);
 	return stars;
 }
@@ -34,8 +29,6 @@ void Galaxy::update(float dt){
 	for(int i = 0;i < N;i++) stars[i].update(dt);
 	sim.updateLuminosityBuffer(stars);
 	sim.update(dt);
-	
-	//std::cout << stars[first].L() << " " << stars[first].getStage() << " " << stars[first].getAge() - stars[first].getTC2() << std::endl;
 }
 
 void Galaxy::draw(){
