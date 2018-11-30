@@ -9,6 +9,7 @@ uniform mat4 MVP;
 
 out vec4 vertexColor;
 flat out ivec4 cloud;
+out float l;
 
 void main(){
 	//Don't MVP * vertexPosition, positions are defined as (x, y, z, 0) to help the simulation
@@ -16,4 +17,5 @@ void main(){
 	vertexColor = color;
 	cloud = isCloud;
 	gl_PointSize = pow(luminosity, 0.25);
+	l = luminosity;
 }

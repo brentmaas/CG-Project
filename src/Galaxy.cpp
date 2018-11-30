@@ -42,4 +42,5 @@ void Galaxy::killAll(){
 void Galaxy::reset(){
 	for(int i = 0;i < (int) stars.size();i++) stars[i].reset();
 	sim.reset();
+	sim.updateLuminosityBuffer(stars);
 }

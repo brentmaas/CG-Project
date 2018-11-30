@@ -2,6 +2,7 @@
 
 in vec4 vertexColor;
 flat in ivec4 cloud;
+in float l;
 
 out vec4 color;
 
@@ -15,6 +16,7 @@ float sinc2(float x){
 }
 
 void main(){
+	if(l <= 0) discard;
 	if(cloud.x != 0) color = texture(texSampler, gl_PointCoord);
 	else{
 		if(length(gl_PointCoord - 0.5) > 0.5) discard;

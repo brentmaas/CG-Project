@@ -226,42 +226,28 @@ int main(int argc, char **argv){
 		if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && !spaceBlock){
 			play = !play;
 			spaceBlock = true;
-			if(!play) std::cout << "Paused" << std::endl;
-			else std::cout << "Unpaused" << std::endl;
 		}
 		if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE) spaceBlock = false;
 		if(!timeblockAdd && glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS){
 			timeFactor *= 2;
 			timeblockAdd = true;
-			std::cout << "Sped up, " << timeFactor << "x" << std::endl;
 		}
 		if(glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_RELEASE) timeblockAdd = false;
 		if(!timeblockSub && glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS){
 			timeFactor *= 0.5f;
 			timeblockSub = true;
-			std::cout << "Slowed down, " << timeFactor << "x" << std::endl;
 		}
 		if(glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_RELEASE) timeblockSub = false;
-		if(glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS){
-			galaxy.killAll();
-			std::cout << "Kill all" << std::endl;
-		}
+		if(glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) galaxy.killAll();
 		if(!resetBlock && glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS){
 			galaxy.reset();
 			kill = false;
 			killtime = 0;
 			resetBlock = true;
-			std::cout << "Reset" << std::endl;
 		}
 		if(glfwGetKey(window, GLFW_KEY_R) == GLFW_RELEASE) resetBlock = false;
-		if(glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS){
-			kill = true;
-			std::cout << "Big oof" << std::endl;
-		}
-		if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS){
-			glfwSetWindowShouldClose(window, GLFW_TRUE);
-			std::cout << "Close" << std::endl;
-		}
+		if(glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS) kill = true;
+		if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, GLFW_TRUE);
 		if(theta > PI / 2) theta = PI / 2;
 		if(theta < -PI / 2) theta = -PI / 2;
 		glm::mat4 mat = mvp * glm::rotate(glm::mat4(1.0f), theta, glm::vec3(1, 0, 0)) * glm::rotate(glm::mat4(1.0f), phi, glm::vec3(0, 1, 0));
