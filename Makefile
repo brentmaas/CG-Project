@@ -1,19 +1,20 @@
 TARGET := CGProjectBrentMaas
 SRC := src
+LIBSRC := libsrc
 BUILD := build
-CXXFLAGS := -I$(SRC) -g -std=c++17 -Wall -O3
+CXXFLAGS := -I$(SRC) -I$(LIBSRC) -g -std=c++17 -Wall -O3
 LDFLAGS := -lopengl32 -mwindows -lglfw3 -lglew32
 
 rwildcard = $(foreach d, $(wildcard $1*), $(call rwildcard, $d/, $2) $(filter $(subst *, %, $2), $d))
 
-SRCS := $(patsubst $(SRC)/%, %, $(call rwildcard, $(SRC)/, *.cpp))
+SRCS := $(patsubst $(SRC)/%, %, $(call rwildcard, $(SRC)/, *.cpp)) $(patsubst $(LIBSRC)/%, %, $(call rwildcard, $(LIBSRC)/, *.cpp))
 OBJECTS := $(SRCS:%.cpp=%.o)
 
 TOTAL := $(words $(OBJECTS) .)
 progress = $(or $(eval PROCESSED := $(PROCESSED) .),$(info [$(words $(PROCESSED))/$(TOTAL)] $1))
 
 vpath %.o $(BUILD)/objects
-vpath %.cpp $(SRC)
+vpath %.cpp $(SRC) $(LIBSRC)
 
 all: $(TARGET)
 	@echo Done!
