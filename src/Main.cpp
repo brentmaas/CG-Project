@@ -2,7 +2,7 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -147,11 +147,12 @@ int main(int argc, char **argv){
 	}
 	
 	glfwMakeContextCurrent(window);
-	if(glewInit() != GLEW_OK){
+	/*if(glewInit() != GLEW_OK){
 		std::cerr << "Could not initialise GLEW." << std::endl;
 		glfwTerminate();
 		return 1;
-	}
+	}*/
+	gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
 	
 	GLuint programParticles = generateProgram("resources/shaders/particles.vertex", "resources/shaders/particles.fragment");
 	
@@ -167,7 +168,7 @@ int main(int argc, char **argv){
 	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_PROGRAM_POINT_SIZE_EXT);
+	glEnable(GL_PROGRAM_POINT_SIZE);
 	
 	glClearColor(0.05f, 0.05f, 0.1f, 1.0f);
 	

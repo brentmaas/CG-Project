@@ -2,7 +2,7 @@
 #define GALAXY_HPP
 
 #include <vector>
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include "Colour.hpp"
 #include "Simulation.hpp"
 #include "Star.hpp"
