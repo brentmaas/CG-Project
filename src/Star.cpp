@@ -9,14 +9,15 @@ const float T_SUN = 5772.005317; //= pow(L_SUN / (4 * PI * SIGMA * R_SUN * R_SUN
 const float tau = 500; //Characteristic stellar lifetime
 const float ts1 = 0.1; //Time in stage 1
 //Supernova constants: minimal mass, amplification, decay, time to maximum, time at maximum
-const float snLim = 9.5, snAmp = 1000, snDecay = 30, snT1 = 0.005, snT2 = 0.025;
+const float snLim = 9.9, snAmp = 1000, snDecay = 30, snT1 = 0.005, snT2 = 0.025;
 
-Star::Star(float m, float R, float g):
+Star::Star(float m, float g):
 	m(m), R(pow(m, 1.0f / 3.0f)), age(0), g(g), tC(1),
 	tC2(3), stage(0){
 	
 }
 
+//Set mass and radius
 void Star::setMR(float m, float R){
 	this->m = m;
 	this->R = pow(m, 1.0f / 3.0f);
@@ -38,7 +39,8 @@ void Star::reset(){
 	stage = 0;
 }
 
-//en.wikipedia.org/wiki/Mass%E2%80%93luminosity_relation
+//Luminosity
+//Source: en.wikipedia.org/wiki/Mass%E2%80%93luminosity_relation
 float Star::L(){
 	if(stage == 0) return 0;
 	float L;
@@ -53,6 +55,7 @@ float Star::L(){
 	return L;
 }
 
+//Temperature
 float Star::T(){
 	return T_SUN * pow(L() / (R * R), 0.25);
 }
@@ -69,18 +72,22 @@ void Star::setStage(int stage){
 	this->stage = stage;
 }
 
+//Get mass
 float Star::getM(){
 	return m;
 }
 
+//Get radius
 float Star::getR(){
 	return R;
 }
 
+//Get collapse time
 float Star::getTC(){
 	return tC;
 }
 
+//Get stellar lifetime
 float Star::getTC2(){
 	return tC2;
 }

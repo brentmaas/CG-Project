@@ -19,24 +19,29 @@ const float PI = 3.14159265359f;
 const float E = 2.71828182846f;
 int width, height;
 const int debugWidth = 1200, debugHeight = 800;
-const float targetFPS = 60.0f;
 
+//Buffered fps meter
 std::vector<float> fpsBuffer = std::vector<float>(10, 0);
 int fpsBufferIndex = 0;
 
+//Time speed
 const float baseUpdateTime = 0.0005f;
 float timeFactor = 1.0f;
+//Blocks to have a button press only count once
 bool timeblockAdd = false, timeblockSub = false;
 
+//Big rip
 const float killspeed = 2;
 bool kill = false;
 float killtime = 0;
 
+//Cursor
 double cx = 0, cy = 0;
 bool dragging = false, clickBlock = false;
 
 bool resetBlock = false;
 
+//Function to load a shader
 GLuint loadShader(const char* file, GLuint type){
 	GLuint shaderID = glCreateShader(type);
 	
@@ -70,6 +75,7 @@ GLuint loadShader(const char* file, GLuint type){
 	return shaderID;
 }
 
+//Function to generate a program from a vertex and fragment shader
 GLuint generateProgram(const char* vertexFile, const char* fragmentFile){
 	GLuint vertexShaderID = loadShader(vertexFile, GL_VERTEX_SHADER);
 	GLuint fragmentShaderID = loadShader(fragmentFile, GL_FRAGMENT_SHADER);
@@ -108,7 +114,7 @@ int getFPS(){
 	return (int) (fps / fpsBuffer.size());
 }
 
-int main(int argc, char **argv){
+int main(int argc, char** argv){
 	if(argc > 1 && std::string(argv[1]) == "debug") debug = true;;
 	
 	if(!glfwInit()){
@@ -116,15 +122,16 @@ int main(int argc, char **argv){
 		return 1;
 	}
 	
+	//4x multisampling, OpenGL 4.3
 	glfwWindowHint(GLFW_SAMPLES, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-
+	
 	GLFWwindow* window;
-	if(!debug){
+	if(!debug){ //Windowed fullscreen
 		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 		width = mode->width;
@@ -134,7 +141,7 @@ int main(int argc, char **argv){
 		glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
 		glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
 		window = glfwCreateWindow(width, height, title.c_str(), monitor, NULL);
-	}else{
+	}else{ //Windowed mode showing fps and time speed in title
 		width = debugWidth;
 		height = debugHeight;
 		window = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
@@ -147,17 +154,14 @@ int main(int argc, char **argv){
 	}
 	
 	glfwMakeContextCurrent(window);
-	/*if(glewInit() != GLEW_OK){
-		std::cerr << "Could not initialise GLEW." << std::endl;
-		glfwTerminate();
-		return 1;
-	}*/
-	gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
+	
+	gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
 	
 	GLuint programParticles = generateProgram("resources/shaders/particles.vertex", "resources/shaders/particles.fragment");
 	
 	glUseProgram(programParticles);
 	
+	//Matrices
 	glm::mat4 projection = glm::perspective(45.0f, ((float) width) / height, 0.01f, 10000.0f);
 	glm::mat4 view = glm::lookAt(glm::vec3(0, 0, 500.0f), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
 	glm::mat4 model = glm::mat4(1.0f);
@@ -172,22 +176,26 @@ int main(int argc, char **argv){
 	
 	glClearColor(0.05f, 0.05f, 0.1f, 1.0f);
 	
+	//VAO
 	GLuint vertexArray;
 	glGenVertexArrays(1, &vertexArray);
 	glBindVertexArray(vertexArray);
 	
+	//Camera position
 	float phi = 0, theta = PI / 2;
+	//Play/pause
 	bool play = true, spaceBlock = false;
+	
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 	
-	auto now = std::chrono::high_resolution_clock::now();
+	std::chrono::time_point now = std::chrono::high_resolution_clock::now();
 	
 	Galaxy galaxy(50000, 10000, 1.0f, 50.0f, 10.0f, std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count(), programParticles);
 	
 	glfwGetCursorPos(window, &cx, &cy);
 	
 	while(!glfwWindowShouldClose(window)){
-		auto now2 = std::chrono::high_resolution_clock::now();
+		std::chrono::time_point now2 = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<float> d = now2 - now;
 		float dt = d.count();
 		now = now2;
@@ -196,13 +204,16 @@ int main(int argc, char **argv){
 		
 		updateFPS(1.0f / dt);
 		
+		//Windowed title
 		if(debug) glfwSetWindowTitle(window, (title + " speed: " + std::to_string(timeFactor) + "x - " + std::to_string(getFPS()) + " fps" + (play ? "" : " - Paused")).c_str());
 		
+		//Update
 		if(play) galaxy.update(timeFactor * baseUpdateTime * pow(E, killspeed * killtime));
 		glUseProgram(programParticles);
 		
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
+		//Camera movement
 		if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) phi += 0.5f * dt;
 		if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) phi -= 0.5f * dt;
 		if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) theta -= 0.5f * dt;
@@ -224,6 +235,7 @@ int main(int argc, char **argv){
 			cx = x;
 			cy = y;
 		}
+		//Play/pause
 		if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && !spaceBlock){
 			play = !play;
 			spaceBlock = true;
@@ -233,13 +245,16 @@ int main(int argc, char **argv){
 			timeFactor *= 2;
 			timeblockAdd = true;
 		}
+		//Time speed up/down
 		if(glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_RELEASE) timeblockAdd = false;
 		if(!timeblockSub && glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS){
 			timeFactor *= 0.5f;
 			timeblockSub = true;
 		}
 		if(glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_RELEASE) timeblockSub = false;
+		//Trigger novas
 		if(glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) galaxy.killAll();
+		//Reset
 		if(!resetBlock && glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS){
 			galaxy.reset();
 			kill = false;
@@ -247,14 +262,18 @@ int main(int argc, char **argv){
 			resetBlock = true;
 		}
 		if(glfwGetKey(window, GLFW_KEY_R) == GLFW_RELEASE) resetBlock = false;
+		//Big rip
 		if(glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS) kill = true;
+		//Request exit
 		if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, GLFW_TRUE);
+		//Camera position fixing and matrix
 		if(theta > PI / 2) theta = PI / 2;
 		if(theta < -PI / 2) theta = -PI / 2;
 		glm::mat4 mat = mvp * glm::rotate(glm::mat4(1.0f), theta, glm::vec3(1, 0, 0)) * glm::rotate(glm::mat4(1.0f), phi, glm::vec3(0, 1, 0));
 		
 		glUniformMatrix4fv(particlesMatrixID, 1, GL_FALSE, &mat[0][0]);
 		
+		//Draw
 		galaxy.draw();
 		
 		glfwSwapBuffers(window);

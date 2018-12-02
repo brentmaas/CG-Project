@@ -9,23 +9,26 @@
 #include "DistributionDisk.hpp"
 #include "Star.hpp"
 
+//Class for handling basic simulation of a galaxy
 class Simulation {
 public:
+	//stars: pregenerated list of stars, NCloud: amount of clouds, g: gravitational constant,
+	//hr: characteristic radius, hz: characteristic height
 	Simulation(std::vector<Star>& stars, int NCloud, float g, float hr, float hz, int seed, GLuint programID);
 	void update(float dt);
 	void draw();
 	void updateLuminosityBuffer(std::vector<Star>& stars);
-	void reset();
+	void reset(); //Regenerate to new initial state
 	~Simulation();
 private:
-	int N, NCloud;
-	float g, hr, hz, totmass;
-	std::vector<glm::vec4> xParticles, vParticles, colorBufferData;
-	std::vector<float> mass;
-	GLuint nID, mgID, dtID;
-	GLuint velocityBuffer, massBuffer, luminosityBuffer, vertexBuffer, colorBuffer, isCloudBuffer;
-	GLuint computeProgram, velocityTargetBuffer, vertexTargetBuffer;
-	GLuint cloudTextureID, cloudTextureSamplerID;
+	int N, NCloud; //Amount of stars and clouds
+	float g, totmass;
+	std::vector<glm::vec4> xParticles, vParticles, colorBufferData; //Vectors for position, velocity, colour
+	std::vector<float> mass; //Masses
+	GLuint nID, mgID, dtID; //Uniforms in compute shader
+	GLuint velocityBuffer, massBuffer, luminosityBuffer, vertexBuffer, colorBuffer, isCloudBuffer; //Buffers
+	GLuint computeProgram, velocityTargetBuffer, vertexTargetBuffer; //More buffers
+	GLuint cloudTextureID, cloudTextureSamplerID; //Texture
 	DistributionDisk dist;
 };
 

@@ -5,10 +5,11 @@
 
 const float mMin = 0.2f, mMax = 10.0f;
 
+//Function to generate an amount of stars to use in the constructor's
+//initialiser list
 std::vector<Star> generateStars(int N, int seed, float g){
-	std::vector<Star> stars = std::vector<Star>(N, Star(1, 1, g));
-	DistributionMass mDist(seed);
-	mDist.setMs(mMin, mMax);
+	std::vector<Star> stars = std::vector<Star>(N, Star(1, g));
+	DistributionMass mDist(seed, mMin, mMax);
 	for(int i = 0;i < N;i++){
 		float m = mDist.evalMass();
 		float r = pow(mDist.evalMass(), 1.0f / 3.0f);
@@ -20,6 +21,8 @@ std::vector<Star> generateStars(int N, int seed, float g){
 	return stars;
 }
 
+//N: amount of stars, NCloud: amount of clouds, g: gravitational constant,
+//hr: characteristic radius, hz: characteristic height
 Galaxy::Galaxy(int N, int NCloud, float g, float hr, float hz, int seed, GLuint programID):
 	N(N), NCloud(NCloud), stars(generateStars(N, seed, g)), sim(stars, NCloud, g, hr, hz, seed, programID){
 	
@@ -35,10 +38,12 @@ void Galaxy::draw(){
 	sim.draw();
 }
 
+//Function to trigger all available novas
 void Galaxy::killAll(){
 	for(int i = 0;i < (int) stars.size();i++) if(stars[i].getStage() == 2) stars[i].setAge(stars[i].getTC2() - 0.05);
 }
 
+//Function to regenerate the galaxy to an initial state
 void Galaxy::reset(){
 	for(int i = 0;i < (int) stars.size();i++) stars[i].reset();
 	sim.reset();

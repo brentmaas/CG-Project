@@ -14,8 +14,8 @@ out float l;
 void main(){
 	//Don't MVP * vertexPosition, positions are defined as (x, y, z, 0) to help the simulation
 	gl_Position = MVP * vec4(vertexPosition.xyz, 1);
+	gl_PointSize = pow(luminosity, 0.25);
 	vertexColor = color;
 	cloud = isCloud;
-	gl_PointSize = pow(luminosity, 0.25);
 	l = luminosity;
 }

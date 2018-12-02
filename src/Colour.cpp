@@ -1,6 +1,8 @@
 #include "Colour.hpp"
 #include <glm/glm.hpp>
 
+//Function for converting star temperature to RGBA
+//Source: tannerhelland.com/4435/convert-temperature-rgb-algorithm-code/
 glm::vec4 getColour(float T){
 	glm::vec4 c = glm::vec4(0, 0, 0, 1);
 	
