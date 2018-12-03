@@ -200,7 +200,7 @@ int main(int argc, char** argv){
 		float dt = d.count();
 		now = now2;
 		
-		if(kill) killtime += dt;
+		if(kill && play) killtime += dt;
 		
 		updateFPS(1.0f / dt);
 		
