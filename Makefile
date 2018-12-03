@@ -3,7 +3,13 @@ SRC := src
 LIBSRC := libsrc
 BUILD := build
 CXXFLAGS := -I$(SRC) -I$(LIBSRC) -g -std=c++17 -Wall -O3
-LDFLAGS := -lopengl32 -mwindows -lglfw3 -lglew32
+LDFLAGS := 
+
+ifeq ($(OS),Windows_NT)
+    LDFLAGS += -lopengl32 -mwindows -lglfw3
+else
+    LDFLAGS += -lGL -Llib -lglfw3 -lrt -lm -ldl -pthread -lX11 -lXinerama -lXi -lXxf86vm -lXcursor
+endif
 
 rwildcard = $(foreach d, $(wildcard $1*), $(call rwildcard, $d/, $2) $(filter $(subst *, %, $2), $d))
 

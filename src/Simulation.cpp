@@ -310,12 +310,5 @@ void Simulation::reset(){
 }
 
 Simulation::~Simulation(){
-	//Delete buffers and compute program
-	glDeleteBuffers(1, &velocityBuffer);
-	glDeleteBuffers(1, &velocityTargetBuffer);
-	glDeleteBuffers(1, &massBuffer);
-	glDeleteBuffers(1, &vertexBuffer);
-	glDeleteBuffers(1, &vertexTargetBuffer);
-	glDeleteBuffers(1, &colorBuffer);
-	glDeleteProgram(computeProgram);
+	
 }

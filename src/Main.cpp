@@ -188,14 +188,14 @@ int main(int argc, char** argv){
 	
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 	
-	std::chrono::time_point now = std::chrono::high_resolution_clock::now();
+	auto now = std::chrono::high_resolution_clock::now();
 	
 	Galaxy galaxy(50000, 10000, 1.0f, 50.0f, 10.0f, std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count(), programParticles);
 	
 	glfwGetCursorPos(window, &cx, &cy);
 	
 	while(!glfwWindowShouldClose(window)){
-		std::chrono::time_point now2 = std::chrono::high_resolution_clock::now();
+		auto now2 = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<float> d = now2 - now;
 		float dt = d.count();
 		now = now2;
