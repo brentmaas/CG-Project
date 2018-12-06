@@ -127,7 +127,7 @@ Simulation::Simulation(std::vector<Star>& stars, int NCloud, float g, float hr, 
 	}
 	
 	//Setup compute shader
-	computeProgram = generateComputeProgram("resources/shaders/particles_simple.compute");
+	computeProgram = generateComputeProgram("resources/shaders/Galaxy.compute");
 	mgID = glGetUniformLocation(computeProgram, "mg");
 	dtID = glGetUniformLocation(computeProgram, "dt");
 	nID = glGetUniformLocation(computeProgram, "N");

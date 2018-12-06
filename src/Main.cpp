@@ -157,7 +157,7 @@ int main(int argc, char** argv){
 	
 	gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
 	
-	GLuint programParticles = generateProgram("resources/shaders/particles.vertex", "resources/shaders/particles.fragment");
+	GLuint programParticles = generateProgram("resources/shaders/Galaxy.vertex", "resources/shaders/Galaxy.fragment");
 	
 	glUseProgram(programParticles);
 	
