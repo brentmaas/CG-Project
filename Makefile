@@ -41,4 +41,7 @@ clean:
 run: all
 	@./$(TARGET)
 
+rundebug: all
+	@./$(TARGET) debug
+
 .PHONY: clean
