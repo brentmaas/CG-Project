@@ -9,7 +9,7 @@ const float T_SUN = 5772.005317; //= pow(L_SUN / (4 * PI * SIGMA * R_SUN * R_SUN
 const float tau = 500; //Characteristic stellar lifetime
 const float ts1 = 0.1; //Time in stage 1
 //Supernova constants: minimal mass, amplification, decay, time to maximum, time at maximum
-const float snLim = 9.9, snAmp = 1000, snDecay = 30, snT1 = 0.005, snT2 = 0.025;
+const float snLim = 15.0, snAmp = 1000, snDecay = 30, snT1 = 0.005, snT2 = 0.025;
 
 Star::Star(float m, float g):
 	m(m), R(pow(m, 1.0f / 3.0f)), age(0), g(g), tC(1),

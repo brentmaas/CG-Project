@@ -3,7 +3,7 @@
 #include <cmath>
 #include <iostream>
 
-const float mMin = 0.2f, mMax = 10.0f;
+const float mMin = 0.2f, mMax = 20.0f;
 
 //Function to generate an amount of stars to use in the constructor's
 //initialiser list
