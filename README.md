@@ -1,4 +1,4 @@
-To compile, simple execute 'make'
+To compile, simple execute 'make'. Compilation and execution worked on computer 0009768 in 302
 
 'make run' or './CGProjectBrentMaas' will have the program run as usual
 
