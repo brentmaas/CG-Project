@@ -53,7 +53,7 @@ GLuint loadShader(const char* file, GLuint type){
 		shaderSrc = strStream.str();
 		shaderStream.close();
 	}else{
-		std::cerr << "Could not open" << file << std::endl;
+		std::cerr << "Could not open " << file << std::endl;
 		getchar();
 		return 0;
 	}
