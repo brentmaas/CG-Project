@@ -1,3 +1,5 @@
+Final project for the course Computer Graphics
+
 To compile, simple execute 'make'. Compilation and execution worked on computer 0009768 in 302.
 Execution requires the folder 'resources' and it's contents next to the executable.
 
